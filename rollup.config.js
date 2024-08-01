@@ -1,30 +1,28 @@
-//import resolve from "@rollup/plugin-node-resolve";
+import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import livereload from "rollup-plugin-livereload";
 import { terser } from "rollup-plugin-terser";
+import livereload from "rollup-plugin-livereload";
 import serve from "rollup-plugin-serve";
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 
-
-const production = !process.env.ROLLUP_WATCH;
+const isProduction = !process.env.ROLLUP_WATCH;
 
 export default {
   input: "src/main.js",
   output: {
     file: "public/bundle.js",
-    format: "iife", // Immediately Invoked Function Expression — suitable for <script> tags
-    sourcemap: true,
+    format: "iife",
+    name: "bundle",
   },
   plugins: [
+    resolve(),
     commonjs(),
-    nodeResolve(),
-    !production &&
+    isProduction && terser(),
+    !isProduction &&
       serve({
         open: true,
-        contentBase: "public",
+        contentBase: ["public"],
         port: 8080,
       }),
-    !production && livereload("public"),
-    production && terser(),
+    !isProduction && livereload("public"),
   ],
 };
