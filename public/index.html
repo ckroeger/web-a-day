@@ -3,11 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Static HTML Template</title>
+    <title>Web-a-day</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Hello World</h1>
-    <script src="/bundle.js" defer></script>
+    <script src="bundle.js" defer></script>
+
+    <h1>Web-a-day</h1>
+    <div class="burger-menu">
+      <div class="burger-icon" onclick="toggleMenu()">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Services</a></li>
+          <li><a href="#">Portfolio</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
   </body>
 </html>

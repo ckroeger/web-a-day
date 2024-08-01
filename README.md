@@ -1,7 +1,4 @@
-# static-html-template
-A template repository to bootstrap simple html content.
-It is a GitHub template for HTML pages with a live server and Rollup bundling.
-
+# web-a-day
 
 ## Features
 
@@ -10,6 +7,7 @@ It is a GitHub template for HTML pages with a live server and Rollup bundling.
 - Bundling with Rollup
 
 ## Structure
+
 ```
 ├── dist/                  # Output directory for bundled files
 ├── src/                   # Source directory for HTML, CSS, and JavaScript files
@@ -22,30 +20,10 @@ It is a GitHub template for HTML pages with a live server and Rollup bundling.
 └── README.md              # Project documentation
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js installed
-
-### Installation
-
-1. Clone the repository:
-
-    ```sh
-    git clone https://github.com/your-username/my-html-template.git
-    cd my-html-template
-    ```
-
-2. Install the dependencies:
-
-    ```sh
-    npm install
-    ```
-
 ### Development
 
 Start the live server and watch for changes:
 
 ```sh
 npm run dev
+```
