@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web-a-day - Popup</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <script src="bundle.js" defer></script>
+    <style>
+      #popup {
+        position: absolute;
+        left: 0px;
+        top: 30px;
+        margin: 0 auto;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+
+        animation: slide 0.25s ease-out;
+      }
+
+      @keyframes slide {
+        from {
+          transform: translateY(-100px);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+
+      /* Close button */
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #open-popup {
+        margin-top: 4lh;
+        text-align: center;
+      }
+    </style>
+    <h1>Web-a-day - Popup</h1>
+    <div id="menu-container"></div>
+    <script>
+      // Load the menu.html content into the menu-container div
+      fetch("menu.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("menu-container").innerHTML = data;
+        })
+        .catch((error) => console.error("Error loading menu:", error));
+    </script>
+    <dialog popover id="popup">
+      <button
+        popovertarget="popup"
+        popovertargetaction="hide"
+        class="close"
+        id="close"
+      >
+        &times;
+      </button>
+      <h2>Popup</h2>
+      <p>This is a popup</p>
+    </dialog>
+    <div id="open-popup">
+      <button popovertarget="popup">Open Popup</button>
+    </div>
+  </body>
+</html>
