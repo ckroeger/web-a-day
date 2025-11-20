@@ -12,7 +12,7 @@ function toggleMenu() {
 
 window.toggleMenu = toggleMenu;
 
-sdata = [
+const sdata = [
   {
     HSN: "0080",
     TSN: "017",
@@ -86,12 +86,13 @@ sdata = [
 ];
 
 // Für globalen Zugriff verfügbar machen
-window.vehicleData = data;
+window.vehicleData = [];
+window.exampleData = sdata;
 
 // HSN-Ausgabe
 console.log("HSN-Liste:");
-data.forEach((item) => {
+sdata.forEach((item) => {
   console.log(item.HSN);
 });
 
-export { toggleMenu, data };
+export { toggleMenu, sdata };

@@ -263,6 +263,25 @@
         </li>
         <li>Wiederholen Sie den Vorgang für weitere Spalten nach Bedarf</li>
       </ol>
+      <div style="margin-top: 15px">
+        <button
+          id="fillExampleDataBtn"
+          style="
+            padding: 10px 20px;
+            background: #18635c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 500;
+          "
+          onmouseover="this.style.background='#145248'"
+          onmouseout="this.style.background='#18635c'"
+        >
+          Fülle mit Beispieldaten
+        </button>
+      </div>
     </div>
     <div class="container">
       <div class="header">
@@ -279,7 +298,7 @@
         </div>
         <div>
           <label for="anzahl">Anzahl der Fahrzeuge*</label>
-          <input id="anzahl" type="number" value="12" min="1" />
+          <input id="anzahl" type="number" value="0" min="0" />
         </div>
       </div>
       <table>
@@ -589,10 +608,26 @@
 
       // Warten bis bundle.js geladen ist
       window.addEventListener("DOMContentLoaded", function () {
-        // Tabelle beim Laden generieren - data aus main.js exports
+        // Tabelle beim Laden generieren - initial leer
         if (window.vehicleData) {
           generateTableRows(window.vehicleData);
         }
+
+        // Event-Listener für den "Fülle mit Beispieldaten" Button
+        document
+          .getElementById("fillExampleDataBtn")
+          .addEventListener("click", function () {
+            if (window.exampleData) {
+              // Kopiere die Beispieldaten in vehicleData
+              window.vehicleData = JSON.parse(
+                JSON.stringify(window.exampleData)
+              );
+              // Tabelle neu generieren
+              generateTableRows(window.vehicleData);
+            } else {
+              alert("Beispieldaten nicht gefunden!");
+            }
+          });
 
         // Event-Listener für Änderung der Fahrzeuganzahl
         const anzahlInput = document.getElementById("anzahl");
