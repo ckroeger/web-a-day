@@ -579,9 +579,20 @@
         // Overlay nur für editierbare Spalten öffnen
         document.querySelectorAll("th").forEach((th, idx) => {
           if (idx === 0) return; // Nr. nicht editierbar
+          // Tooltip hinzufügen
+          th.setAttribute("title", "Klick zur en bloc Eingabe");
           th.addEventListener("click", function () {
             openOverlay(this.textContent);
           });
+        });
+
+        // Event-Listener für STRG+EINGABE im Overlay-Textarea
+        const overlayTextarea = document.getElementById("overlayTextarea");
+        overlayTextarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && e.ctrlKey) {
+            e.preventDefault();
+            submitData();
+          }
         });
       });
     </script>
