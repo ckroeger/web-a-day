@@ -98,4 +98,10 @@ const data = [
 // Für globalen Zugriff verfügbar machen
 window.vehicleData = data;
 
+// HSN-Ausgabe
+console.log("HSN-Liste:");
+data.forEach(item => {
+  console.log(item.HSN);
+});
+
 export { toggleMenu, data };
