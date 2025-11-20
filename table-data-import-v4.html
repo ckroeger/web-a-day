@@ -280,9 +280,31 @@
         
         function submitData() {
             const data = document.getElementById('overlayTextarea').value;
-            console.log('Spalte:', currentColumnName);
-            console.log('Eingefügte Daten:', data);
-            console.log('Anzahl Zeilen:', data.split('\n').filter(line => line.trim()).length);
+            const lines = data.split('\n').filter(line => line.trim());
+            
+            // Finde den Index der Spalte basierend auf dem Spaltennamen
+            const headers = ['Nr.', 'HSN', 'TSN', 'Leistung (kw)', 'Kennzeichen', 'Saison'];
+            const columnIndex = headers.indexOf(currentColumnName);
+            
+            if (columnIndex === -1) {
+                alert('Spalte nicht gefunden!');
+                return;
+            }
+            
+            // Hole alle Tabellenzeilen
+            const tbody = document.getElementById('vehicle-table-body');
+            const rows = tbody.querySelectorAll('tr');
+            
+            // Fülle die Werte in die entsprechende Spalte ein
+            lines.forEach((line, index) => {
+                if (index < rows.length) {
+                    const inputs = rows[index].querySelectorAll('input');
+                    if (inputs[columnIndex]) {
+                        inputs[columnIndex].value = line.trim();
+                    }
+                }
+            });
+            
             closeOverlay();
         }
         
