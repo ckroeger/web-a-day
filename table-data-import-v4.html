@@ -69,11 +69,37 @@
             font-size: 1rem;
             font-weight: 600;
         }
+        td {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        td.editing {
+            padding: 0;
+        }
+        
         td input {
-            width: 90%;
-            border: none;
-            background: transparent;
+            width: 100%;
+            border: 2px solid #18635c;
+            background: #fff;
             font-size: 1rem;
+            padding: 8px 10px;
+            box-sizing: border-box;
+        }
+        
+        td input:focus {
+            outline: none;
+            border-color: #3d6249;
+        }
+        
+        td .cell-content {
+            display: block;
+            min-height: 1.2em;
+        }
+        
+        td:hover:not(.editing) {
+            background: #c3e4db !important;
+            box-shadow: inset 0 0 0 1px #18635c;
         }
         tr:nth-child(even) td {
             background: #eaf5f2;
@@ -298,9 +324,12 @@
             // Fülle die Werte in die entsprechende Spalte ein
             lines.forEach((line, index) => {
                 if (index < rows.length) {
-                    const inputs = rows[index].querySelectorAll('input');
-                    if (inputs[columnIndex]) {
-                        inputs[columnIndex].value = line.trim();
+                    const cells = rows[index].querySelectorAll('td');
+                    if (cells[columnIndex]) {
+                        const content = cells[columnIndex].querySelector('.cell-content');
+                        if (content) {
+                            content.textContent = line.trim();
+                        }
                     }
                 }
             });
@@ -325,12 +354,12 @@
                 vehicleData.forEach((vehicle, index) => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td><input value="${vehicle['Nr.']}"></td>
-                        <td><input value="${vehicle['HSN']}"></td>
-                        <td><input value="${vehicle['TSN']}"></td>
-                        <td><input value="${vehicle['Leistung (kw)']}"></td>
-                        <td><input value="${vehicle['Kennzeichen']}"></td>
-                        <td><input value="${vehicle['Saison']}"></td>
+                        <td><span class="cell-content">${vehicle['Nr.']}</span></td>
+                        <td><span class="cell-content">${vehicle['HSN']}</span></td>
+                        <td><span class="cell-content">${vehicle['TSN']}</span></td>
+                        <td><span class="cell-content">${vehicle['Leistung (kw)']}</span></td>
+                        <td><span class="cell-content">${vehicle['Kennzeichen']}</span></td>
+                        <td><span class="cell-content">${vehicle['Saison']}</span></td>
                     `;
                     
                     // Dynamische Animation mit Verzögerung
@@ -343,6 +372,55 @@
                 
                 // Anzahl der Fahrzeuge aktualisieren
                 document.getElementById('anzahl').value = vehicleData.length;
+                
+                // Inplace-Editing aktivieren
+                enableInplaceEditing();
+            }
+            
+            // Funktion für Inplace-Editing
+            function enableInplaceEditing() {
+                const tbody = document.getElementById('vehicle-table-body');
+                const cells = tbody.querySelectorAll('td');
+                
+                cells.forEach(cell => {
+                    cell.addEventListener('click', function() {
+                        if (this.classList.contains('editing')) return;
+                        
+                        const content = this.querySelector('.cell-content');
+                        const currentValue = content.textContent;
+                        
+                        // Zelle in Edit-Modus versetzen
+                        this.classList.add('editing');
+                        
+                        // Input-Feld erstellen
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = currentValue;
+                        
+                        // Inhalt ersetzen
+                        this.innerHTML = '';
+                        this.appendChild(input);
+                        input.focus();
+                        input.select();
+                        
+                        // Speichern bei Enter oder Blur
+                        function saveEdit() {
+                            const newValue = input.value;
+                            cell.classList.remove('editing');
+                            cell.innerHTML = `<span class="cell-content">${newValue}</span>`;
+                        }
+                        
+                        input.addEventListener('blur', saveEdit);
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                saveEdit();
+                            } else if (e.key === 'Escape') {
+                                cell.classList.remove('editing');
+                                cell.innerHTML = `<span class="cell-content">${currentValue}</span>`;
+                            }
+                        });
+                    });
+                });
             }
             
             // Tabelle beim Laden generieren - data aus main.js exports
