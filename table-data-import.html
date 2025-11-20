@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Fahrzeuggruppe 1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            margin: 30px;
+        }
+        .hinweis {
+            margin-bottom: 20px;
+        }
+        .container {
+            background: #e7f4f1;
+            border-radius: 10px;
+            width: 700px;
+            padding-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .header {
+            background: #18635c;
+            color: white;
+            padding: 16px;
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        .header i {
+            margin-right: 10px;
+        }
+        .details-row {
+            display: flex;
+            gap: 30px;
+            padding: 20px 20px 10px 20px;
+        }
+        .details-row label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .details-row select, .details-row input {
+            width: 220px;
+            padding: 6px;
+            border-radius: 5px;
+            border: 1px solid #b6c7c3;
+            background: #fff;
+            font-size: 1rem;
+        }
+        table {
+            width: 96%;
+            margin: 0 2%;
+            border-collapse: collapse;
+            background: #f5faf8;
+        }
+        th, td {
+            border: 1px solid #d4e1de;
+            text-align: left;
+            padding: 8px 10px;
+        }
+        th {
+            background: #3d6249;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        td input {
+            width: 90%;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+        tr:nth-child(even) td {
+            background: #eaf5f2;
+        }
+        tr:hover td {
+            background: #d1ede6;
+        }
+    </style>
+</head>
+<body>
+    <div class="hinweis">
+        <b>b.</b> Einfügen der Fahrzeugdaten per Copy&amp;Paste aus einer standardisierten Excel-Liste.<br />
+        Erster Schritt: Auswahl Fahrzeugart und Anzahl der Fahrzeuge<br />
+        Zweiter Schritt: Daten in Excel markieren, kopieren, in erste Zelle in der TAA-Tabelle klicken.<br />
+        In diesem Fall müssten es bearbeitbare Felder sein.
+    </div>
+    <div class="container">
+        <div class="header">
+            <i>🚗</i>
+            Fahrzeuggruppe 1
+        </div>
+        <div class="details-row">
+            <div>
+                <label for="fahrzeugart">Fahrzeugart*</label>
+                <select id="fahrzeugart">
+                    <option>Personenkraftwagen</option>
+                    <option>Nutzfahrzeug</option>
+                </select>
+            </div>
+            <div>
+                <label for="anzahl">Anzahl der Fahrzeuge*</label>
+                <input id="anzahl" type="number" value="12" min="1" />
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>HSN</th>
+                    <th>TSN</th>
+                    <th>Leistung (kw)</th>
+                    <th>Kennzeichen</th>
+                    <th>Saison</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><input value="01"></td><td><input value="0080"></td><td><input value="017"></td><td><input value="120"></td><td><input value="S-WW 123"></td><td><input value="12"></td></tr>
+                <tr><td><input value="02"></td><td><input value="0080"></td><td><input value="017"></td><td><input value="120"></td><td><input value="S-WW 234"></td><td><input value="12"></td></tr>
+                <tr><td><input value="03"></td><td><input value="0203"></td><td><input value="003"></td><td><input value="99"></td><td><input value="S-WW 345"></td><td><input value="8"></td></tr>
+                <tr><td><input value="04"></td><td><input value="0203"></td><td><input value="003"></td><td><input value="99"></td><td><input value="S-WW 456"></td><td><input value="8"></td></tr>
+                <tr><td><input value="05"></td><td><input value="0203"></td><td><input value="003"></td><td><input value="99"></td><td><input value="S-WW 567"></td><td><input value="8"></td></tr>
+                <tr><td><input value="06"></td><td><input value="0203"></td><td><input value="003"></td><td><input value="99"></td><td><input value="S-WW 678"></td><td><input value="8"></td></tr>
+                <tr><td><input value="07"></td><td><input value="0203"></td><td><input value="003"></td><td><input value="99"></td><td><input value="S-WW 789"></td><td><input value="8"></td></tr>
+                <tr><td><input value="08"></td><td><input value="0100"></td><td><input value="001"></td><td><input value="175"></td><td><input value="n/a"></td><td><input value="6"></td></tr>
+                <tr><td><input value="09"></td><td><input value="0100"></td><td><input value="001"></td><td><input value="154"></td><td><input value="n/a"></td><td><input value="12"></td></tr>
+                <tr><td><input value="10"></td><td><input value="0366"></td><td><input value="007"></td><td><input value="75"></td><td><input value="S-XY 1210"></td><td><input value="12"></td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
