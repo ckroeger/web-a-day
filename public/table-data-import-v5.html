@@ -453,6 +453,9 @@
         // Anzahl der Fahrzeuge aktualisieren
         document.getElementById("anzahl").value = vehicleData.length;
 
+        // Setze das Minimum dynamisch auf die aktuelle Anzahl
+        document.getElementById("anzahl").min = vehicleData.length;
+
         // Inplace-Editing aktivieren
         enableInplaceEditing();
       }
@@ -525,12 +528,52 @@
           }
         });
 
+      // Event-Handler für Änderungen der Fahrzeuganzahl
+      function handleVehicleCountChange() {
+        const anzahlInput = document.getElementById("anzahl");
+        const newCount = parseInt(anzahlInput.value) || 0;
+        const currentCount = window.vehicleData.length;
+
+        // Verhindere, dass weniger Fahrzeuge als vorhanden eingestellt werden
+        if (newCount < currentCount) {
+          anzahlInput.value = currentCount;
+          alert(
+            `Es sind bereits ${currentCount} Fahrzeuge mit Daten vorhanden. Die Anzahl kann nicht reduziert werden.`
+          );
+          return;
+        }
+
+        // Wenn mehr Fahrzeuge gewünscht sind, erweitere die Datenstruktur
+        if (newCount > currentCount) {
+          const additionalRows = newCount - currentCount;
+          for (let i = 0; i < additionalRows; i++) {
+            window.vehicleData.push({
+              HSN: "",
+              TSN: "",
+              "Leistung (kw)": "",
+              Kennzeichen: "",
+              Saison: "",
+            });
+          }
+          // Tabelle neu rendern
+          generateTableRows(window.vehicleData);
+        }
+      }
+
       // Warten bis bundle.js geladen ist
       window.addEventListener("DOMContentLoaded", function () {
         // Tabelle beim Laden generieren - data aus main.js exports
         if (window.vehicleData) {
           generateTableRows(window.vehicleData);
         }
+
+        // Event-Listener für Änderung der Fahrzeuganzahl
+        const anzahlInput = document.getElementById("anzahl");
+        anzahlInput.addEventListener("change", handleVehicleCountChange);
+        anzahlInput.addEventListener("blur", handleVehicleCountChange);
+
+        // Setze das Minimum auf die aktuelle Anzahl der Fahrzeuge
+        anzahlInput.min = window.vehicleData ? window.vehicleData.length : 1;
 
         // Click-Handler für Spaltenüberschriften hinzufügen
         // Overlay nur für editierbare Spalten öffnen
