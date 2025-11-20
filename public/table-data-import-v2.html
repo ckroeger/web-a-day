@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Fahrzeuggruppe 1</title>
+    <script src="bundle.js" defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f9fafb;
+            margin: 30px;
+        }
+        .hinweis {
+            margin-bottom: 20px;
+        }
+        .container {
+            background: #e7f4f1;
+            border-radius: 10px;
+            width: 700px;
+            padding-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .header {
+            background: #18635c;
+            color: white;
+            padding: 16px;
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        .header i {
+            margin-right: 10px;
+        }
+        .details-row {
+            display: flex;
+            gap: 30px;
+            padding: 20px 20px 10px 20px;
+        }
+        .details-row label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .details-row select, .details-row input {
+            width: 220px;
+            padding: 6px;
+            border-radius: 5px;
+            border: 1px solid #b6c7c3;
+            background: #fff;
+            font-size: 1rem;
+        }
+        table {
+            width: 96%;
+            margin: 0 2%;
+            border-collapse: collapse;
+            background: #f5faf8;
+        }
+        th, td {
+            border: 1px solid #d4e1de;
+            text-align: left;
+            padding: 8px 10px;
+        }
+        th {
+            background: #3d6249;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        td input {
+            width: 90%;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+        tr:nth-child(even) td {
+            background: #eaf5f2;
+        }
+        tr:hover td {
+            background: #d1ede6;
+        }
+    </style>
+</head>
+<body>
+    <div class="hinweis">
+        <b>b.</b> Einfügen der Fahrzeugdaten per Copy&amp;Paste aus einer standardisierten Excel-Liste.<br />
+        Erster Schritt: Auswahl Fahrzeugart und Anzahl der Fahrzeuge<br />
+        Zweiter Schritt: Daten in Excel markieren, kopieren, in erste Zelle in der TAA-Tabelle klicken.<br />
+        In diesem Fall müssten es bearbeitbare Felder sein.
+    </div>
+    <div class="container">
+        <div class="header">
+            <i>🚗</i>
+            Fahrzeuggruppe 1
+        </div>
+        <div class="details-row">
+            <div>
+                <label for="fahrzeugart">Fahrzeugart*</label>
+                <select id="fahrzeugart">
+                    <option>Personenkraftwagen</option>
+                    <option>Nutzfahrzeug</option>
+                </select>
+            </div>
+            <div>
+                <label for="anzahl">Anzahl der Fahrzeuge*</label>
+                <input id="anzahl" type="number" value="12" min="1" />
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>HSN</th>
+                    <th>TSN</th>
+                    <th>Leistung (kw)</th>
+                    <th>Kennzeichen</th>
+                    <th>Saison</th>
+                </tr>
+            </thead>
+            <tbody id="vehicle-table-body">
+                <!-- Wird dynamisch generiert -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="bundle.js"></script>
+    <script>
+        // Warten bis bundle.js geladen ist
+        window.addEventListener('DOMContentLoaded', function() {
+            // Funktion zum Generieren der Tabellenzeilen
+            function generateTableRows(vehicleData) {
+                const tbody = document.getElementById('vehicle-table-body');
+                tbody.innerHTML = '';
+                
+                vehicleData.forEach(vehicle => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input value="${vehicle['Nr.']}"></td>
+                        <td><input value="${vehicle['HSN']}"></td>
+                        <td><input value="${vehicle['TSN']}"></td>
+                        <td><input value="${vehicle['Leistung (kw)']}"></td>
+                        <td><input value="${vehicle['Kennzeichen']}"></td>
+                        <td><input value="${vehicle['Saison']}"></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Anzahl der Fahrzeuge aktualisieren
+                document.getElementById('anzahl').value = vehicleData.length;
+            }
+            
+            // Tabelle beim Laden generieren - data aus main.js exports
+            if (window.vehicleData) {
+                generateTableRows(window.vehicleData);
+            }
+        });
+    </script>
+</body>
+</html>
