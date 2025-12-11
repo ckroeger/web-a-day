@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fahrzeuggruppe 1</title>
+    <script src="bundle.js" defer></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f9fafb;
+        margin: 30px;
+      }
+      .hinweis {
+        margin-bottom: 20px;
+      }
+      .container {
+        background: #e7f4f1;
+        border-radius: 10px;
+        width: 700px;
+        padding-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+      .header {
+        background: #18635c;
+        color: white;
+        padding: 16px;
+        border-radius: 10px 10px 0 0;
+        font-weight: bold;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+      }
+      .header i {
+        margin-right: 10px;
+      }
+      .details-row {
+        display: flex;
+        gap: 30px;
+        padding: 20px 20px 10px 20px;
+      }
+      .details-row label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+        display: block;
+      }
+      .details-row select,
+      .details-row input {
+        width: 220px;
+        padding: 6px;
+        border-radius: 5px;
+        border: 1px solid #b6c7c3;
+        background: #fff;
+        font-size: 1rem;
+      }
+      table {
+        width: 96%;
+        margin: 0 2%;
+        border-collapse: collapse;
+        background: #f5faf8;
+      }
+      th,
+      td {
+        border: 1px solid #d4e1de;
+        text-align: left;
+        padding: 8px 10px;
+      }
+      th {
+        background: #3d6249;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      td {
+        cursor: pointer;
+        position: relative;
+      }
+
+      td.editing {
+        padding: 0;
+      }
+
+      td input {
+        width: 100%;
+        border: 2px solid #18635c;
+        background: #fff;
+        font-size: 1rem;
+        padding: 8px 10px;
+        box-sizing: border-box;
+      }
+
+      td input:focus {
+        outline: none;
+        border-color: #3d6249;
+      }
+
+      td .cell-content {
+        display: block;
+        min-height: 1.2em;
+      }
+
+      td:hover:not(.editing) {
+        background: #c3e4db !important;
+        box-shadow: inset 0 0 0 1px #18635c;
+      }
+      tr:nth-child(even) td {
+        background: #eaf5f2;
+      }
+      tr:hover td {
+        background: #d1ede6;
+      }
+
+      /* Animation für Tabellenzeilen */
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* Overlay Styles */
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .overlay.active {
+        display: flex;
+      }
+
+      .overlay-window {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        width: 500px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .overlay-header {
+        background: #18635c;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px 8px 0 0;
+        font-weight: bold;
+        font-size: 1.1rem;
+      }
+
+      .overlay-content {
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .overlay-info {
+        margin-bottom: 15px;
+        color: #555;
+        font-size: 0.95rem;
+      }
+
+      .overlay-textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 10px;
+        border: 1px solid #b6c7c3;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        resize: vertical;
+        box-sizing: border-box;
+      }
+
+      .overlay-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding: 15px 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .overlay-btn {
+        padding: 8px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .overlay-btn-cancel {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .overlay-btn-cancel:hover {
+        background: #d0d0d0;
+      }
+
+      .overlay-btn-submit {
+        background: #18635c;
+        color: white;
+      }
+
+      .overlay-btn-submit:hover {
+        background: #145248;
+      }
+
+      th {
+        cursor: pointer;
+        user-select: none;
+      }
+
+      th:hover {
+        background: #2d4c38;
+      }
+
+      /* Beforeunload Dialog Styles */
+      .beforeunload-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .beforeunload-overlay.active {
+        display: flex;
+      }
+
+      .beforeunload-dialog {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        width: 450px;
+        padding: 0;
+      }
+
+      .beforeunload-dialog h2 {
+        background: #18635c;
+        color: white;
+        padding: 16px 20px;
+        margin: 0;
+        border-radius: 8px 8px 0 0;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+
+      .beforeunload-dialog p {
+        padding: 20px;
+        margin: 0;
+        color: #333;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .beforeunload-dialog-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px 20px;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .beforeunload-btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .beforeunload-btn-cancel {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .beforeunload-btn-cancel:hover {
+        background: #d0d0d0;
+      }
+
+      .beforeunload-btn-leave {
+        background: #dc3545;
+        color: white;
+      }
+
+      .beforeunload-btn-leave:hover {
+        background: #c82333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hinweis">
+      <b>So funktioniert der Datenimport:</b><br /><br />
+      <ol>
+        <li>
+          Wählen Sie die <strong>Fahrzeugart</strong> aus (Personenkraftwagen
+          oder Nutzfahrzeug)
+        </li>
+        <li>
+          Geben Sie die <strong>Anzahl der Fahrzeuge</strong> ein, die Sie
+          importieren möchten
+        </li>
+        <li>
+          Markieren Sie die gewünschten <strong>Daten in Excel</strong> (z.B.
+          eine Spalte mit HSN-Nummern)
+        </li>
+        <li>Kopieren Sie die markierten Daten (<kbd>Strg+C</kbd>)</li>
+        <li>
+          Klicken Sie auf eine
+          <strong
+            >Zelle mit der entsprechenden Spaltenbezeichnung in der Tabelle z.B.
+            HSN</strong
+          >
+          unten
+        </li>
+        <li>
+          Es öffnet sich ein Eingabefenster – fügen Sie die kopierten Daten ein
+          (<kbd>Strg+V</kbd>)
+        </li>
+        <li>
+          Klicken Sie auf <strong>"Übernehmen"</strong>, um die Daten zu
+          importieren (Alternativ <kbd>Strg+Eingabe</kbd>)
+        </li>
+        <li>Wiederholen Sie den Vorgang für weitere Spalten nach Bedarf</li>
+      </ol>
+      <div style="margin-top: 15px">
+        <button
+          id="fillExampleDataBtn"
+          style="
+            padding: 10px 20px;
+            background: #18635c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 500;
+          "
+          onmouseover="this.style.background='#145248'"
+          onmouseout="this.style.background='#18635c'"
+        >
+          Fülle mit Beispieldaten
+        </button>
+      </div>
+    </div>
+    <div class="container">
+      <div class="header">
+        <i>🚗</i>
+        Fahrzeuggruppe 1
+      </div>
+      <div class="details-row">
+        <div>
+          <label for="fahrzeugart">Fahrzeugart*</label>
+          <select id="fahrzeugart">
+            <option>Personenkraftwagen</option>
+            <option>Nutzfahrzeug</option>
+          </select>
+        </div>
+        <div>
+          <label for="anzahl">Anzahl der Fahrzeuge*</label>
+          <input id="anzahl" type="number" value="0" min="0" />
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nr.</th>
+            <th>HSN</th>
+            <th>TSN</th>
+            <th>Leistung (kw)</th>
+            <th>Kennzeichen</th>
+            <th>Saison</th>
+          </tr>
+        </thead>
+        <tbody id="vehicle-table-body">
+          <!-- Wird dynamisch generiert -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Overlay für Beforeunload Bestätigung -->
+    <div class="beforeunload-overlay" id="beforeunloadOverlay">
+      <div class="beforeunload-dialog">
+        <h2>Seite verlassen?</h2>
+        <p>
+          Möchten Sie diese Seite wirklich verlassen? Alle nicht gespeicherten Änderungen gehen verloren.
+        </p>
+        <div class="beforeunload-dialog-buttons">
+          <button class="beforeunload-btn beforeunload-btn-cancel" onclick="cancelLeave()">
+            Abbrechen
+          </button>
+          <button class="beforeunload-btn beforeunload-btn-leave" onclick="confirmLeave()">
+            Verlassen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay für Dateneingabe -->
+    <div class="overlay" id="dataOverlay">
+      <div class="overlay-window">
+        <div class="overlay-header" id="overlayTitle">Spalte</div>
+        <div class="overlay-content">
+          <div class="overlay-info">
+            Hier bitte den Inhalt der kopierten Excelspalte einfügen
+          </div>
+          <textarea
+            class="overlay-textarea"
+            id="overlayTextarea"
+            placeholder="Daten hier einfügen..."
+          ></textarea>
+        </div>
+        <div class="overlay-buttons">
+          <button
+            class="overlay-btn overlay-btn-cancel"
+            onclick="closeOverlay()"
+          >
+            Abbrechen
+          </button>
+          <button class="overlay-btn overlay-btn-submit" onclick="submitData()">
+            Übernehmen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="bundle.js"></script>
+    <script>
+      let currentColumnName = "";
+
+      // Overlay-Funktionen
+      function openOverlay(columnName) {
+        currentColumnName = columnName;
+        document.getElementById("overlayTitle").textContent = columnName;
+
+        // Finde den Index der Spalte
+        const headers = [
+          "Nr.",
+          "HSN",
+          "TSN",
+          "Leistung (kw)",
+          "Kennzeichen",
+          "Saison",
+        ];
+        const columnIndex = headers.indexOf(columnName);
+
+        // Sammle die vorhandenen Daten aus der Spalte
+        const tbody = document.getElementById("vehicle-table-body");
+        const rows = tbody.querySelectorAll("tr");
+        const columnData = [];
+
+        rows.forEach((row) => {
+          const cells = row.querySelectorAll("td");
+          if (cells[columnIndex]) {
+            const content = cells[columnIndex].querySelector(".cell-content");
+            if (content) {
+              columnData.push(content.textContent);
+            }
+          }
+        });
+
+        // Befülle das Textarea mit den vorhandenen Daten
+        const textarea = document.getElementById("overlayTextarea");
+        textarea.value = columnData.join("\n");
+
+        // Öffne das Overlay
+        document.getElementById("dataOverlay").classList.add("active");
+
+        // Fokussiere und markiere den gesamten Text
+        setTimeout(() => {
+          textarea.focus();
+          textarea.select();
+        }, 100);
+      }
+
+      function closeOverlay() {
+        document.getElementById("dataOverlay").classList.remove("active");
+        currentColumnName = "";
+      }
+
+      function submitData() {
+        const data = document.getElementById("overlayTextarea").value;
+        const lines = data.split("\n").filter((line) => line.trim());
+
+        // Finde den Index der Spalte basierend auf dem Spaltennamen
+        const headers = [
+          "Nr.",
+          "HSN",
+          "TSN",
+          "Leistung (kw)",
+          "Kennzeichen",
+          "Saison",
+        ];
+        const columnIndex = headers.indexOf(currentColumnName);
+
+        if (columnIndex === -1) {
+          alert("Spalte nicht gefunden!");
+          return;
+        }
+
+        // Hole alle Tabellenzeilen
+        const tbody = document.getElementById("vehicle-table-body");
+        const rows = tbody.querySelectorAll("tr");
+
+        // Wenn mehr Zeilen eingegeben wurden als Tabellenzeilen existieren, erweitere die Tabelle
+        if (lines.length > rows.length) {
+          const additionalRows = lines.length - rows.length;
+
+          // Erweitere das vehicleData-Array
+          for (let i = 0; i < additionalRows; i++) {
+            window.vehicleData.push({
+              HSN: "",
+              TSN: "",
+              "Leistung (kw)": "",
+              Kennzeichen: "",
+              Saison: "",
+            });
+          }
+
+          // Regeneriere die Tabelle mit der erweiterten Datenstruktur
+          generateTableRows(window.vehicleData);
+        }
+
+        // Hole die aktualisierten Zeilen nach eventueller Erweiterung
+        const updatedRows = tbody.querySelectorAll("tr");
+
+        // Fülle die Werte in die entsprechende Spalte ein und synchronisiere mit vehicleData
+        lines.forEach((line, index) => {
+          if (index < updatedRows.length) {
+            const cells = updatedRows[index].querySelectorAll("td");
+            if (cells[columnIndex]) {
+              const content = cells[columnIndex].querySelector(".cell-content");
+              if (content) {
+                content.textContent = line.trim();
+
+                // Synchronisiere mit vehicleData
+                const fieldName = headers[columnIndex];
+                if (window.vehicleData[index] && fieldName !== "Nr.") {
+                  window.vehicleData[index][fieldName] = line.trim();
+                }
+              }
+            }
+          }
+        });
+
+        closeOverlay();
+      }
+
+      // Funktion zum Generieren der Tabellenzeilen
+      function generateTableRows(vehicleData) {
+        const tbody = document.getElementById("vehicle-table-body");
+        tbody.innerHTML = "";
+
+        vehicleData.forEach((vehicle, index) => {
+          const row = document.createElement("tr");
+          // Nummer als dreistellige Zahl mit führenden Nullen
+          const nummer = String(index + 1).padStart(3, "0");
+          row.innerHTML = `
+                          <td><span class="cell-content">${nummer}</span></td>
+                          <td><span class="cell-content">${vehicle["HSN"]}</span></td>
+                          <td><span class="cell-content">${vehicle["TSN"]}</span></td>
+                          <td><span class="cell-content">${vehicle["Leistung (kw)"]}</span></td>
+                          <td><span class="cell-content">${vehicle["Kennzeichen"]}</span></td>
+                          <td><span class="cell-content">${vehicle["Saison"]}</span></td>
+                      `;
+
+          // Dynamische Animation mit Verzögerung
+          row.style.opacity = "0";
+          row.style.transform = "translateX(-100%)";
+          row.style.animation = `slideIn 0.5s ease-out ${
+            index * 0.05
+          }s forwards`;
+
+          tbody.appendChild(row);
+        });
+
+        // Anzahl der Fahrzeuge aktualisieren
+        document.getElementById("anzahl").value = vehicleData.length;
+
+        // Setze das Minimum dynamisch auf die aktuelle Anzahl
+        document.getElementById("anzahl").min = vehicleData.length;
+
+        // Inplace-Editing aktivieren
+        enableInplaceEditing();
+      }
+
+      // Funktion für Inplace-Editing
+      function enableInplaceEditing() {
+        const tbody = document.getElementById("vehicle-table-body");
+        const rows = tbody.querySelectorAll("tr");
+        const headers = [
+          "Nr.",
+          "HSN",
+          "TSN",
+          "Leistung (kw)",
+          "Kennzeichen",
+          "Saison",
+        ];
+
+        rows.forEach((row, rowIndex) => {
+          // Nur die Zellen ab Index 1 (Nr. ist 0) editierbar machen
+          const cells = row.querySelectorAll("td");
+          for (let i = 1; i < cells.length; i++) {
+            const cell = cells[i];
+            const columnIndex = i;
+
+            cell.addEventListener("click", function () {
+              if (this.classList.contains("editing")) return;
+              const content = this.querySelector(".cell-content");
+              const currentValue = content.textContent;
+              this.classList.add("editing");
+              const input = document.createElement("input");
+              input.type = "text";
+              input.value = currentValue;
+              this.innerHTML = "";
+              this.appendChild(input);
+              input.focus();
+              input.select();
+
+              function saveEdit() {
+                const newValue = input.value;
+                cell.classList.remove("editing");
+                cell.innerHTML = `<span class="cell-content">${newValue}</span>`;
+
+                // Synchronisiere mit vehicleData
+                const fieldName = headers[columnIndex];
+                if (window.vehicleData[rowIndex] && fieldName !== "Nr.") {
+                  window.vehicleData[rowIndex][fieldName] = newValue;
+                }
+              }
+
+              input.addEventListener("blur", saveEdit);
+              input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                  saveEdit();
+                } else if (e.key === "Escape") {
+                  cell.classList.remove("editing");
+                  cell.innerHTML = `<span class="cell-content">${currentValue}</span>`;
+                }
+              });
+            });
+          }
+        });
+      }
+
+      // Schließen bei Klick außerhalb des Fensters
+      document
+        .getElementById("dataOverlay")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            closeOverlay();
+          }
+        });
+
+      // Event-Handler für Änderungen der Fahrzeuganzahl
+      function handleVehicleCountChange() {
+        const anzahlInput = document.getElementById("anzahl");
+        const newCount = parseInt(anzahlInput.value) || 0;
+        const currentCount = window.vehicleData.length;
+
+        // Verhindere, dass weniger Fahrzeuge als vorhanden eingestellt werden
+        if (newCount < currentCount) {
+          anzahlInput.value = currentCount;
+          alert(
+            `Es sind bereits ${currentCount} Fahrzeuge mit Daten vorhanden. Die Anzahl kann nicht reduziert werden.`
+          );
+          return;
+        }
+
+        // Wenn mehr Fahrzeuge gewünscht sind, erweitere die Datenstruktur
+        if (newCount > currentCount) {
+          const additionalRows = newCount - currentCount;
+          for (let i = 0; i < additionalRows; i++) {
+            window.vehicleData.push({
+              HSN: "",
+              TSN: "",
+              "Leistung (kw)": "",
+              Kennzeichen: "",
+              Saison: "",
+            });
+          }
+          // Tabelle neu rendern
+          generateTableRows(window.vehicleData);
+        }
+      }
+
+      // Warten bis bundle.js geladen ist
+      window.addEventListener("DOMContentLoaded", function () {
+        // Tabelle beim Laden generieren - initial leer
+        if (window.vehicleData) {
+          generateTableRows(window.vehicleData);
+        }
+
+        // Event-Listener für den "Fülle mit Beispieldaten" Button
+        document
+          .getElementById("fillExampleDataBtn")
+          .addEventListener("click", function () {
+            if (window.exampleData) {
+              // Kopiere die Beispieldaten in vehicleData
+              window.vehicleData = JSON.parse(
+                JSON.stringify(window.exampleData)
+              );
+              // Tabelle neu generieren
+              generateTableRows(window.vehicleData);
+            } else {
+              alert("Beispieldaten nicht gefunden!");
+            }
+          });
+
+        // Event-Listener für Änderung der Fahrzeuganzahl
+        const anzahlInput = document.getElementById("anzahl");
+        anzahlInput.addEventListener("change", handleVehicleCountChange);
+        anzahlInput.addEventListener("blur", handleVehicleCountChange);
+
+        // Setze das Minimum auf die aktuelle Anzahl der Fahrzeuge
+        anzahlInput.min = window.vehicleData ? window.vehicleData.length : 1;
+
+        // Click-Handler für Spaltenüberschriften hinzufügen
+        // Overlay nur für editierbare Spalten öffnen
+        document.querySelectorAll("th").forEach((th, idx) => {
+          if (idx === 0) return; // Nr. nicht editierbar
+          // Tooltip hinzufügen
+          th.setAttribute("title", "Klick zur en bloc Eingabe");
+          th.addEventListener("click", function () {
+            openOverlay(this.textContent);
+          });
+        });
+
+        // Event-Listener für STRG+EINGABE im Overlay-Textarea
+        const overlayTextarea = document.getElementById("overlayTextarea");
+        overlayTextarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && e.ctrlKey) {
+            e.preventDefault();
+            submitData();
+          }
+        });
+      });
+      // Beforeunload Dialog Funktionalität
+      let allowLeave = false;
+      let pendingNavigation = null;
+
+      function showBeforeunloadDialog() {
+        document.getElementById('beforeunloadOverlay').classList.add('active');
+      }
+
+      function cancelLeave() {
+        document.getElementById('beforeunloadOverlay').classList.remove('active');
+        pendingNavigation = null;
+      }
+
+      function confirmLeave() {
+        allowLeave = true;
+        document.getElementById('beforeunloadOverlay').classList.remove('active');
+        if (pendingNavigation) {
+          window.location.href = pendingNavigation;
+        } else {
+          // Versuche den Tab zu schließen
+          window.open('', '_self', '');
+          window.close();
+          // Falls window.close() nicht funktioniert (Tab wurde nicht von JS geöffnet)
+          // navigiere zurück oder zu einer leeren Seite
+          setTimeout(() => {
+            if (history.length > 1) {
+              history.back();
+            } else {
+              window.location.href = 'about:blank';
+            }
+          }, 100);
+        }
+      }
+
+      // Beforeunload Event Handler
+      window.addEventListener('beforeunload', function (e) {
+        if (!allowLeave && window.vehicleData && window.vehicleData.length > 0) {
+          e.preventDefault();
+          e.returnValue = '';
+          
+          // Zeige unseren eigenen Dialog
+          showBeforeunloadDialog();
+        }
+      });
+
+      // Intercept navigation attempts
+      document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && link.href && !allowLeave && window.vehicleData && window.vehicleData.length > 0) {
+          e.preventDefault();
+          pendingNavigation = link.href;
+          showBeforeunloadDialog();
+        }
+      });
+    </script>
+  </body>
+</html>
