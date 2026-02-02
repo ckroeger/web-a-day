@@ -104,6 +104,15 @@
         }
         #pie-chart:hover { transform: rotate(-90deg) scale(1.02); } /* Leichter Hover-Effekt */
 
+        /* Segment Hover Effekt */
+        .segment-group {
+            transform-origin: center;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .segment-group.highlighted {
+            /* Wird dynamisch per JavaScript gesetzt basierend auf Segment-Position */
+        }
+
         .legend {
             margin-top: 30px; display: grid; grid-template-columns: 1fr; gap: 10px;
             width: 100%; max-width: 340px;
@@ -308,6 +317,7 @@ Umsetzung, 40"></textarea>
 
             const segmentGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
             segmentGroup.dataset.segmentIndex = i; // Markiere die Gruppe
+            segmentGroup.classList.add('segment-group'); // Füge CSS-Klasse hinzu
 
             if (SEGMENT_BORDER_WIDTH > 0) {
                 const borderArc = createArc(segmentSize, offset, SEGMENT_BORDER_COLOR, 32 + (SEGMENT_BORDER_WIDTH * 2));
@@ -374,12 +384,39 @@ Umsetzung, 40"></textarea>
         if (legendItem) {
             legendItem.classList.add('highlighted');
         }
+        
+        // Highlight arc segment
+        const svg = document.getElementById('pie-chart');
+        const segmentGroup = svg.querySelector(`g[data-segment-index="${index}"]`);
+        if (segmentGroup) {
+            segmentGroup.classList.add('highlighted');
+            
+            // Berechne die Richtung basierend auf der Position des Segments
+            const n = currentData.length;
+            const sliceSize = 360 / n;
+            const middleAngle = (index * sliceSize + sliceSize / 2) * (Math.PI / 180);
+            
+            // Abstand vom Zentrum (in Pixeln der SVG-Koordinaten)
+            const pullDistance = 1.5;
+            const dx = Math.cos(middleAngle) * pullDistance;
+            const dy = Math.sin(middleAngle) * pullDistance;
+            
+            segmentGroup.style.transform = `translate(${dx}px, ${dy}px)`;
+        }
     }
 
     function unhighlightSegment(index) {
         const legendItem = document.getElementById(`legend-${index}`);
         if (legendItem) {
             legendItem.classList.remove('highlighted');
+        }
+        
+        // Unhighlight arc segment
+        const svg = document.getElementById('pie-chart');
+        const segmentGroup = svg.querySelector(`g[data-segment-index="${index}"]`);
+        if (segmentGroup) {
+            segmentGroup.classList.remove('highlighted');
+            segmentGroup.style.transform = '';
         }
     }
 
