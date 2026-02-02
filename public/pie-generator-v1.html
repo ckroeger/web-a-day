@@ -166,6 +166,10 @@ Umsetzung, 40"></textarea>
         '#06b6d4'  // Cyan
     ];
     
+    // Konfiguration für Segment-Rahmen
+    const SEGMENT_BORDER_WIDTH = 0.5; // Breite des Rahmens (wird zur stroke-width addiert)
+    const SEGMENT_BORDER_COLOR = '#000000'; // Farbe des Rahmens
+    
     const initialRaw = "Angebot erstellen, 100\nAngebot aktualisieren, 90\nAngebot berechnen, 90\nAngebot validieren, 60\nAntragsprozess, 30\nDruck & Versand, 10";
 
     function init() {
@@ -280,19 +284,31 @@ Umsetzung, 40"></textarea>
 
         const sliceSize = 100 / n;
         // GAP ERHÖHT: Sorgt für dickere weiße "Rahmen" zwischen den Stücken
-        const gap = n > 1 ? 1.2 : 0; 
+        const gap = n > 1 ? 0.19 : 0;
+        // Korrigierte Berechnung: Größe jedes Segments ohne Gap
+        const segmentSize = sliceSize - gap;
+        // Gesamtumfang minus alle Gaps
+        const totalCircumference = 100;
 
         data.forEach((item, i) => {
             const color = COLORS[i % COLORS.length];
-            const offset = -(i * sliceSize);
+            // Offset berechnet sich aus Position * sliceSize (Segment + Gap)
+            // WICHTIG: Wir starten mit gap/2 um den Gap gleichmäßig zu verteilen
+            const offset = -(i * sliceSize + gap / 2);
+
+            // 0. Rahmen-Segment (umrahmt beide Teile)
+            if (SEGMENT_BORDER_WIDTH > 0) {
+                const borderArc = createArc(segmentSize, offset, SEGMENT_BORDER_COLOR, 32 + (SEGMENT_BORDER_WIDTH * 2));
+                svg.appendChild(borderArc);
+            }
 
             // 1. Hintergrund-Segment (Das "Fehlende")
-            const bgArc = createArc(sliceSize - gap, offset, 'var(--empty-segment)');
+            const bgColor = color + alphaHex(0.6); // 0.1 = 10% Transparenz
+            const bgArc = createArc(segmentSize, offset, bgColor);
             svg.appendChild(bgArc);
 
             // 2. Vordergrund-Segment (Der Fortschritt)
-            // Berechnung angepasst, damit 100% auch wirklich das ganze Segment füllt
-            const progressSize = (item.val / 100) * (sliceSize - gap);
+            const progressSize = (item.val / 100) * segmentSize;
             
             // Nur zeichnen wenn Fortschritt > 0
             if(progressSize > 0.1) {
@@ -311,7 +327,7 @@ Umsetzung, 40"></textarea>
         });
     }
 
-    function createArc(size, offset, color) {
+    function createArc(size, offset, color, strokeWidth = 32) {
         // Sicherheitscheck für negative Größen
         size = Math.max(0, size);
         
@@ -321,7 +337,7 @@ Umsetzung, 40"></textarea>
         circle.setAttribute("cy", "16");
         circle.setAttribute("fill", "transparent");
         circle.setAttribute("stroke", color);
-        circle.setAttribute("stroke-width", "32");
+        circle.setAttribute("stroke-width", strokeWidth.toString());
         // WICHTIG: stroke-linecap "butt" sorgt für harte Kanten an den Lücken
         circle.setAttribute("stroke-linecap", "butt"); 
         circle.setAttribute("stroke-dasharray", `${size} 100`);
@@ -329,6 +345,28 @@ Umsetzung, 40"></textarea>
         // Geschmeidige Animation beim Ändern der Werte
         circle.style.transition = "stroke-dasharray 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), stroke 0.3s";
         return circle;
+    }
+
+    // Wandelt einen Wert von 0.0 bis 1.0 in einen zweistelligen Hex-Alpha-Wert um
+    /*
+    Die Werte für die gewünschten Prozentsätze (Alpha) lauten:
+        10 % → 1A
+        20 % → 33
+        30 % → 4D
+        40 % → 66
+        50 % → 80
+        60 % → 99
+    
+        Berechnung:
+        Alpha-Hex=round(255×Prozent/100)
+    
+        Das Ergebnis wird als zweistellige Hex-Zahl geschrieben.
+    */
+    function alphaHex(percent) {
+        // Clamp zwischen 0 und 1
+        percent = Math.max(0, Math.min(1, percent));
+        const hex = Math.round(percent * 255).toString(16).toUpperCase();
+        return hex.length === 1 ? '0' + hex : hex;
     }
 
     init();
