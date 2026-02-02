@@ -73,6 +73,25 @@
         }
         .btn-add:hover { background: #e0e7ff; border-color: var(--primary); }
         
+        .btn-export {
+            padding: 14px; border-radius: 12px; border: 2px solid var(--primary);
+            background: var(--primary); color: white; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-export:hover { background: #4338ca; border-color: #4338ca; }
+        
+        .checkbox-group {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px; background: #f8fafc; border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer;
+        }
+        .checkbox-group label {
+            margin: 0; font-weight: 500; cursor: pointer;
+        }
+        
         details { background: #f8fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
         summary { cursor: pointer; font-weight: 600; color: #64748b; user-select: none; }
         #bulk-input {
@@ -151,6 +170,13 @@
         <div class="button-bar">
             <button class="btn-add" onclick="addRow()">+ Neuen Aspekt anlegen</button>
             
+            <div class="checkbox-group">
+                <input type="checkbox" id="show-labels" checked onchange="render()">
+                <label for="show-labels">Labels im Diagramm anzeigen</label>
+            </div>
+            
+            <button class="btn-export" onclick="exportAsImage(this)">📷 Als Bild kopieren</button>
+            
             <details open>
                 <summary>Schnellerfassung (Copy & Paste)</summary>
                 <textarea id="bulk-input" oninput="syncFromBulk()" placeholder="Beispiel:
@@ -190,6 +216,7 @@ Umsetzung, 40"></textarea>
 
     let currentData = []; // Globale Referenz für Event-Handler
     let lastHighlightedIndex = -1;
+    let showLabels = true;
 
     function init() {
         document.getElementById('bulk-input').value = initialRaw;
@@ -271,6 +298,9 @@ Umsetzung, 40"></textarea>
         const data = [];
         let totalVal = 0;
 
+        // Aktualisiere showLabels VOR der Verarbeitung
+        showLabels = document.getElementById('show-labels').checked;
+
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input');
             const l = inputs[0].value.trim();
@@ -342,9 +372,11 @@ Umsetzung, 40"></textarea>
             hitArea.style.cursor = 'pointer';
             segmentGroup.appendChild(hitArea);
 
-            // Label hinzufügen
-            const label = createLabel(item.label, i, n, segmentSize);
-            segmentGroup.appendChild(label);
+            // Label hinzufügen nur wenn aktiviert
+            if (showLabels) {
+                const label = createLabel(item.label, i, n, segmentSize);
+                segmentGroup.appendChild(label);
+            }
 
             svg.appendChild(segmentGroup);
 
@@ -529,6 +561,111 @@ Umsetzung, 40"></textarea>
         percent = Math.max(0, Math.min(1, percent));
         const hex = Math.round(percent * 255).toString(16).toUpperCase();
         return hex.length === 1 ? '0' + hex : hex;
+    }
+
+    async function exportAsImage(button) {
+        try {
+            const chartSection = document.querySelector('.chart-section');
+            
+            // Schritt 1: SVG in Bild konvertieren
+            const svgElement = document.getElementById('pie-chart');
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+            
+            // Schritt 2: Bild laden
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = svgUrl;
+            });
+            
+            // Schritt 3: Erstelle Container mit gedrehtem Bild
+            const exportContainer = document.createElement('div');
+            exportContainer.style.cssText = `
+                position: fixed;
+                left: -9999px;
+                top: 0;
+                background: white;
+                padding: 40px;
+                width: 600px;
+            `;
+            
+            // Header klonen
+            const header = chartSection.querySelector('#chart-header').cloneNode(true);
+            exportContainer.appendChild(header);
+            
+            // DIV für gedrehtes Bild
+            const rotatedDiv = document.createElement('div');
+            rotatedDiv.style.cssText = `
+                transform: rotate(-90deg);
+                width: 340px;
+                height: 340px;
+                margin: 25px auto;
+            `;
+            
+            const rotatedImg = img.cloneNode(true);
+            rotatedImg.style.cssText = `
+                width: 100%;
+                height: 100%;
+            `;
+            rotatedDiv.appendChild(rotatedImg);
+            exportContainer.appendChild(rotatedDiv);
+            
+            // Legende klonen
+            const legend = chartSection.querySelector('#legend').cloneNode(true);
+            exportContainer.appendChild(legend);
+            
+            document.body.appendChild(exportContainer);
+            
+            // Lade html2canvas dynamisch
+            if (!window.html2canvas) {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            
+            // Erstelle Canvas
+            const canvas = await html2canvas(exportContainer, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                logging: false
+            });
+            
+            // Konvertiere zu Blob
+            canvas.toBlob(async (blob) => {
+                try {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]);
+                    
+                    // Feedback
+                    const originalText = button.textContent;
+                    button.textContent = '✓ Bild kopiert!';
+                    button.style.background = '#10b981';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '';
+                    }, 2000);
+                } catch (err) {
+                    alert('Fehler beim Kopieren in die Zwischenablage. Bitte Browser-Berechtigungen prüfen.');
+                    console.error('Clipboard error:', err);
+                }
+                
+                // Cleanup
+                URL.revokeObjectURL(svgUrl);
+                document.body.removeChild(exportContainer);
+            }, 'image/png');
+            
+        } catch (error) {
+            alert('Fehler beim Erstellen des Bildes: ' + error.message);
+            console.error('Export error:', error);
+        }
     }
 
     init();
