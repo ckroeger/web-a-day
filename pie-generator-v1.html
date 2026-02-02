@@ -113,6 +113,13 @@
             padding: 12px 16px; background: #f8fafc; border-radius: 10px;
             font-size: 0.9rem; border-left: 5px solid transparent;
             box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .legend-item.highlighted {
+            background: #e0e7ff;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
         }
         .legend-label { font-weight: 500; color: #334155; }
         .legend-value { font-weight: 800; font-feature-settings: "tnum"; }
@@ -171,6 +178,9 @@ Umsetzung, 40"></textarea>
     const SEGMENT_BORDER_COLOR = '#000000'; // Farbe des Rahmens
     
     const initialRaw = "Angebot erstellen, 100\nAngebot aktualisieren, 90\nAngebot berechnen, 90\nAngebot validieren, 60\nAntragsprozess, 30\nDruck & Versand, 10";
+
+    let currentData = []; // Globale Referenz für Event-Handler
+    let lastHighlightedIndex = -1;
 
     function init() {
         document.getElementById('bulk-input').value = initialRaw;
@@ -265,6 +275,8 @@ Umsetzung, 40"></textarea>
             }
         });
 
+        currentData = data; // Speichere für Event-Handler
+
         const n = data.length;
         const maxSum = n * 100;
         // Header mit Durchschnitt statt Summe (optional, oft aussagekräftiger)
@@ -292,43 +304,53 @@ Umsetzung, 40"></textarea>
 
         data.forEach((item, i) => {
             const color = COLORS[i % COLORS.length];
-            // Offset berechnet sich aus Position * sliceSize (Segment + Gap)
-            // WICHTIG: Wir starten mit gap/2 um den Gap gleichmäßig zu verteilen
             const offset = -(i * sliceSize + gap / 2);
 
-            // 0. Rahmen-Segment (umrahmt beide Teile)
+            const segmentGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            segmentGroup.dataset.segmentIndex = i; // Markiere die Gruppe
+
             if (SEGMENT_BORDER_WIDTH > 0) {
                 const borderArc = createArc(segmentSize, offset, SEGMENT_BORDER_COLOR, 32 + (SEGMENT_BORDER_WIDTH * 2));
-                svg.appendChild(borderArc);
+                segmentGroup.appendChild(borderArc);
             }
 
-            // 1. Hintergrund-Segment (Das "Fehlende")
             const bgColor = color + alphaHex(0.6); // 0.1 = 10% Transparenz
             const bgArc = createArc(segmentSize, offset, bgColor);
-            svg.appendChild(bgArc);
+            segmentGroup.appendChild(bgArc);
 
-            // 2. Vordergrund-Segment (Der Fortschritt)
             const progressSize = (item.val / 100) * segmentSize;
             
-            // Nur zeichnen wenn Fortschritt > 0
             if(progressSize > 0.1) {
                  const fgArc = createArc(progressSize, offset, color);
                  // Optional: Hellerer Schein auf dem farbigen Segment für "Glossy" Look
                  fgArc.style.filter = "drop-shadow(0 0 2px rgba(255,255,255,0.3))";
-                 svg.appendChild(fgArc);
+                 segmentGroup.appendChild(fgArc);
             }
 
-            // 3. Legende
+            const hitArea = createArc(segmentSize, offset, 'transparent', 34);
+            hitArea.style.pointerEvents = 'all';
+            hitArea.style.cursor = 'pointer';
+            segmentGroup.appendChild(hitArea);
+
+            svg.appendChild(segmentGroup);
+
+            // 4. Legende
             const li = document.createElement('div');
             li.className = 'legend-item';
+            li.id = `legend-${i}`;
             li.style.borderLeftColor = color;
             li.innerHTML = `<span class="legend-label">${item.label}</span> <span class="legend-value" style="color:${color}">${item.val}%</span>`;
+            li.addEventListener('mouseenter', () => highlightSegment(i));
+            li.addEventListener('mouseleave', () => unhighlightSegment(i));
             legend.appendChild(li);
         });
+
+        // Event-Delegation auf SVG-Ebene
+        svg.onmousemove = handleSvgMouseMove;
+        svg.onmouseleave = handleSvgMouseLeave;
     }
 
     function createArc(size, offset, color, strokeWidth = 32) {
-        // Sicherheitscheck für negative Größen
         size = Math.max(0, size);
         
         const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -338,13 +360,58 @@ Umsetzung, 40"></textarea>
         circle.setAttribute("fill", "transparent");
         circle.setAttribute("stroke", color);
         circle.setAttribute("stroke-width", strokeWidth.toString());
-        // WICHTIG: stroke-linecap "butt" sorgt für harte Kanten an den Lücken
         circle.setAttribute("stroke-linecap", "butt"); 
         circle.setAttribute("stroke-dasharray", `${size} 100`);
         circle.setAttribute("stroke-dashoffset", offset);
-        // Geschmeidige Animation beim Ändern der Werte
         circle.style.transition = "stroke-dasharray 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), stroke 0.3s";
+        circle.style.pointerEvents = 'none';
+        
         return circle;
+    }
+
+    function highlightSegment(index) {
+        const legendItem = document.getElementById(`legend-${index}`);
+        if (legendItem) {
+            legendItem.classList.add('highlighted');
+        }
+    }
+
+    function unhighlightSegment(index) {
+        const legendItem = document.getElementById(`legend-${index}`);
+        if (legendItem) {
+            legendItem.classList.remove('highlighted');
+        }
+    }
+
+    function handleSvgMouseMove(e) {
+        const svg = document.getElementById('pie-chart');
+        const rect = svg.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        
+        // Berechne Winkel (0° = oben, im Uhrzeigersinn)
+        let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+        if (angle < 0) angle += 360;
+        
+        // Berechne welches Segment
+        const n = currentData.length;
+        const sliceSize = 360 / n;
+        const segmentIndex = Math.floor(angle / sliceSize);
+        
+        if (segmentIndex !== lastHighlightedIndex && segmentIndex >= 0 && segmentIndex < n) {
+            if (lastHighlightedIndex >= 0) {
+                unhighlightSegment(lastHighlightedIndex);
+            }
+            highlightSegment(segmentIndex);
+            lastHighlightedIndex = segmentIndex;
+        }
+    }
+
+    function handleSvgMouseLeave() {
+        if (lastHighlightedIndex >= 0) {
+            unhighlightSegment(lastHighlightedIndex);
+            lastHighlightedIndex = -1;
+        }
     }
 
     // Wandelt einen Wert von 0.0 bis 1.0 in einen zweistelligen Hex-Alpha-Wert um
