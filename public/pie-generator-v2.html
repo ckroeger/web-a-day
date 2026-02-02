@@ -395,6 +395,32 @@ Umsetzung, 40"></textarea>
         const x = 16 + Math.cos(middleAngle) * radius;
         const y = 16 + Math.sin(middleAngle) * radius;
         
+        // Kürze lange Labels
+        const maxLength = 12;
+        const displayLabel = label.length > maxLength ? label.substring(0, maxLength - 1) + '…' : label;
+        
+        // Erstelle Gruppe für Label mit Hintergrund
+        const labelGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        labelGroup.setAttribute("transform", `rotate(90, ${x}, ${y})`);
+        
+        // Hintergrund-Rechteck
+        const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        const padding = 0.2; // Reduziert von 0.4 auf 0.2
+        const textWidth = displayLabel.length * 0.85; // Approximation
+        const textHeight = 1.8;
+        
+        bg.setAttribute("x", x - textWidth / 2 - padding);
+        bg.setAttribute("y", y - textHeight / 2 - padding / 2);
+        bg.setAttribute("width", textWidth + padding * 2);
+        bg.setAttribute("height", textHeight + padding);
+        bg.setAttribute("fill", "rgba(255, 255, 255, 0.9)");
+        bg.setAttribute("rx", "0.5");
+        bg.setAttribute("ry", "0.5");
+        bg.style.pointerEvents = 'none';
+        
+        labelGroup.appendChild(bg);
+        
+        // Text
         text.setAttribute("x", x);
         text.setAttribute("y", y);
         text.setAttribute("text-anchor", "middle");
@@ -404,16 +430,11 @@ Umsetzung, 40"></textarea>
         text.setAttribute("font-weight", "600");
         text.style.pointerEvents = 'none';
         text.style.userSelect = 'none';
-        
-        // Rotiere Text zurück, damit er lesbar ist (kompensiere die -90° des SVG)
-        text.setAttribute("transform", `rotate(90, ${x}, ${y})`);
-        
-        // Kürze lange Labels
-        const maxLength = 12;
-        const displayLabel = label.length > maxLength ? label.substring(0, maxLength - 1) + '…' : label;
         text.textContent = displayLabel;
         
-        return text;
+        labelGroup.appendChild(text);
+        
+        return labelGroup;
     }
 
     function highlightSegment(index) {
