@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Pie Final</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc; /* Etwas hellerer Hintergrund für besseren Kontrast zum Chart */
+            --card: #ffffff;
+            --text: #1e293b;
+            --empty-segment: #eaecf0; /* Helles Grau für den Hintergrund-Teil */
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+        /* --- Inputs Styling --- */
+        .form-group { margin-bottom: 25px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: #475569; font-size: 0.9rem; }
+        
+        #theme-input {
+            width: 100%; padding: 14px; font-size: 1.1rem;
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            box-sizing: border-box; transition: all 0.2s;
+            background: #f8fafc;
+        }
+        #theme-input:focus { border-color: var(--primary); background: #fff; outline: none; }
+
+        .row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; animation: slideIn 0.2s ease-out; }
+        .row input {
+            padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px;
+            font-size: 0.95rem; transition: border-color 0.2s;
+        }
+        .row input:focus { border-color: var(--primary); outline: none; }
+        .row input[type="text"] { flex: 3; }
+        .row input[type="number"] { flex: 1; text-align: center; }
+        .btn-delete {
+            background: #fee2e2; color: #ef4444; border: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-delete:hover { background: #fecaca; transform: scale(1.05); }
+
+        .button-bar { margin-top: 25px; display: flex; flex-direction: column; gap: 15px; }
+        .btn-add {
+            padding: 14px; border-radius: 12px; border: 2px dashed #c7d2fe;
+            background: #eef2ff; color: var(--primary); font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-add:hover { background: #e0e7ff; border-color: var(--primary); }
+        
+        details { background: #f8fafc; border-radius: 12px; padding: 15px; border: 1px solid #e2e8f0; }
+        summary { cursor: pointer; font-weight: 600; color: #64748b; user-select: none; }
+        #bulk-input {
+            width: 100%; height: 120px; margin-top: 15px; padding: 12px;
+            font-family: monospace; border: 1px solid #cbd5e1; border-radius: 10px;
+            box-sizing: border-box; resize: vertical;
+        }
+
+        /* --- Chart Styling (Neu: Schatten & Rahmen) --- */
+        .chart-section {
+            text-align: center; display: flex; flex-direction: column;
+            align-items: center; position: sticky; top: 30px;
+        }
+        #chart-header {
+            font-size: 1.4rem; font-weight: 800; margin-bottom: 25px;
+            color: #0f172a; letter-spacing: -0.02em;
+        }
+        
+        /* Das Herzstück des neuen Looks */
+        #pie-chart {
+            transform: rotate(-90deg);
+            border-radius: 50%;
+            background: #ffffff; /* Sorgt für saubere weiße Lücken (Rahmen) */
+            border: 4px solid #ffffff; /* Weißer Innenring */
+            outline: 1px solid #e2e8f0; /* Subtiler äußerer Begrenzungsring */
+            /* Der "nice leichte Schatten" - mehrstufig für Weichheit */
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.12)) drop-shadow(0 4px 8px rgba(0,0,0,0.06));
+            transition: all 0.3s ease;
+        }
+        #pie-chart:hover { transform: rotate(-90deg) scale(1.02); } /* Leichter Hover-Effekt */
+
+        .legend {
+            margin-top: 30px; display: grid; grid-template-columns: 1fr; gap: 10px;
+            width: 100%; max-width: 340px;
+        }
+        .legend-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: #f8fafc; border-radius: 10px;
+            font-size: 0.9rem; border-left: 5px solid transparent;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
+        .legend-label { font-weight: 500; color: #334155; }
+        .legend-value { font-weight: 800; font-feature-settings: "tnum"; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="input-section">
+        <div class="form-group">
+            <label for="theme-input">Projekt / Thema</label>
+            <input type="text" id="theme-input" value="VKPK Reporting" oninput="render()" placeholder="Name des Themas">
+        </div>
+
+        <label>Teilaspekte definieren</label>
+        <div id="inputs-container"></div>
+
+        <div class="button-bar">
+            <button class="btn-add" onclick="addRow()">+ Neuen Aspekt anlegen</button>
+            
+            <details open>
+                <summary>Schnellerfassung (Copy & Paste)</summary>
+                <textarea id="bulk-input" oninput="syncFromBulk()" placeholder="Beispiel:
+Analyse, 100
+Konzeption, 80
+Umsetzung, 40"></textarea>
+            </details>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <div id="chart-header">Thema</div>
+        <svg id="pie-chart" width="340" height="340" viewBox="-2 -2 36 36">
+            </svg>
+        <div id="legend" class="legend"></div>
+    </div>
+</div>
+
+<script>
+    // Modernere Farbpalette
+    const COLORS = [
+        '#4f46e5', // Indigo
+        '#0ea5e9', // Sky
+        '#10b981', // Emerald
+        '#f59e0b', // Amber
+        '#ef4444', // Red
+        '#8b5cf6', // Violet
+        '#ec4899', // Pink
+        '#06b6d4'  // Cyan
+    ];
+    
+    const initialRaw = "Angebot erstellen, 100\nAngebot aktualisieren, 90\nAngebot berechnen, 90\nAngebot validieren, 60\nAntragsprozess, 30\nDruck & Versand, 10";
+
+    function init() {
+        document.getElementById('bulk-input').value = initialRaw;
+        syncFromBulk();
+    }
+
+    function addRow(label = "", val = "") {
+        const container = document.getElementById('inputs-container');
+        if (container.children.length >= 20) { alert("Maximum von 20 Aspekten erreicht."); return; }
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.innerHTML = `
+            <input type="text" placeholder="Bezeichnung" value="${label}" oninput="syncFromInputs()">
+            <input type="number" placeholder="%" value="${val}" min="0" max="100" oninput="syncFromInputs()">
+            <button class="btn-delete" onclick="this.parentElement.remove(); syncFromInputs();" title="Entfernen">&times;</button>
+        `;
+        container.appendChild(div);
+        syncFromInputs();
+    }
+
+    function syncFromInputs() {
+        const rows = document.querySelectorAll('.row');
+        let lines = [];
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            // Nur übernehmen wenn Label oder Wert existiert
+            if(inputs[0].value.trim() || inputs[1].value.trim()) {
+                 // Wenn kein Wert, dann 0 annehmen
+                const val = inputs[1].value.trim() === "" ? 0 : inputs[1].value.trim();
+                lines.push(`${inputs[0].value}, ${val}`);
+            }
+        });
+        document.getElementById('bulk-input').value = lines.join('\n');
+        render();
+    }
+
+    function syncFromBulk() {
+        const text = document.getElementById('bulk-input').value;
+        const container = document.getElementById('inputs-container');
+        container.innerHTML = '';
+        
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            // Ignoriere leere Zeilen
+            if(!line.trim()) return;
+
+            // Flexibler Split, falls Komma im Namen vorkommt (nimmt das letzte Komma als Trenner)
+            const lastCommaIndex = line.lastIndexOf(',');
+            let label, val;
+
+            if (lastCommaIndex > -1) {
+                 label = line.substring(0, lastCommaIndex).trim();
+                 val = line.substring(lastCommaIndex + 1).trim();
+            } else {
+                 label = line.trim();
+                 val = "0";
+            }
+            
+            if(label) {
+                const div = document.createElement('div');
+                div.className = 'row';
+                // Stelle sicher, dass val eine Zahl ist, sonst leer
+                const numericVal = isNaN(parseFloat(val)) ? '' : parseFloat(val);
+
+                div.innerHTML = `
+                    <input type="text" placeholder="Bezeichnung" value="${label}" oninput="syncFromInputs()">
+                    <input type="number" placeholder="%" value="${numericVal}" min="0" max="100" oninput="syncFromInputs()">
+                    <button class="btn-delete" onclick="this.parentElement.remove(); syncFromInputs();">&times;</button>
+                `;
+                container.appendChild(div);
+            }
+        });
+        render();
+    }
+
+    function render() {
+        const theme = document.getElementById('theme-input').value || "Projektauswertung";
+        const rows = document.querySelectorAll('.row');
+        const data = [];
+        let totalVal = 0;
+
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            const l = inputs[0].value.trim();
+            // Sicherstellen, dass der Wert zwischen 0 und 100 liegt
+            let v = parseFloat(inputs[1].value) || 0;
+            v = Math.max(0, Math.min(100, v)); 
+
+            if (l) {
+                data.push({ label: l, val: v });
+                totalVal += v;
+            }
+        });
+
+        const n = data.length;
+        const maxSum = n * 100;
+        // Header mit Durchschnitt statt Summe (optional, oft aussagekräftiger)
+        const avg = n > 0 ? Math.round(totalVal / n) : 0;
+        document.getElementById('chart-header').innerHTML = `${theme} <span style="color:var(--primary); font-size:0.9em">(${(avg)}% Ø)</span>`;
+
+        const svg = document.getElementById('pie-chart');
+        const legend = document.getElementById('legend');
+        svg.innerHTML = '';
+        legend.innerHTML = '';
+
+        if (n === 0) {
+             // Platzhalter, wenn keine Daten
+             svg.innerHTML = '<circle r="16" cx="16" cy="16" fill="none" stroke="#e2e8f0" stroke-width="32" />';
+             return;
+        }
+
+        const sliceSize = 100 / n;
+        // GAP ERHÖHT: Sorgt für dickere weiße "Rahmen" zwischen den Stücken
+        const gap = n > 1 ? 1.2 : 0; 
+
+        data.forEach((item, i) => {
+            const color = COLORS[i % COLORS.length];
+            const offset = -(i * sliceSize);
+
+            // 1. Hintergrund-Segment (Das "Fehlende")
+            const bgArc = createArc(sliceSize - gap, offset, 'var(--empty-segment)');
+            svg.appendChild(bgArc);
+
+            // 2. Vordergrund-Segment (Der Fortschritt)
+            // Berechnung angepasst, damit 100% auch wirklich das ganze Segment füllt
+            const progressSize = (item.val / 100) * (sliceSize - gap);
+            
+            // Nur zeichnen wenn Fortschritt > 0
+            if(progressSize > 0.1) {
+                 const fgArc = createArc(progressSize, offset, color);
+                 // Optional: Hellerer Schein auf dem farbigen Segment für "Glossy" Look
+                 fgArc.style.filter = "drop-shadow(0 0 2px rgba(255,255,255,0.3))";
+                 svg.appendChild(fgArc);
+            }
+
+            // 3. Legende
+            const li = document.createElement('div');
+            li.className = 'legend-item';
+            li.style.borderLeftColor = color;
+            li.innerHTML = `<span class="legend-label">${item.label}</span> <span class="legend-value" style="color:${color}">${item.val}%</span>`;
+            legend.appendChild(li);
+        });
+    }
+
+    function createArc(size, offset, color) {
+        // Sicherheitscheck für negative Größen
+        size = Math.max(0, size);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "16");
+        circle.setAttribute("cx", "16");
+        circle.setAttribute("cy", "16");
+        circle.setAttribute("fill", "transparent");
+        circle.setAttribute("stroke", color);
+        circle.setAttribute("stroke-width", "32");
+        // WICHTIG: stroke-linecap "butt" sorgt für harte Kanten an den Lücken
+        circle.setAttribute("stroke-linecap", "butt"); 
+        circle.setAttribute("stroke-dasharray", `${size} 100`);
+        circle.setAttribute("stroke-dashoffset", offset);
+        // Geschmeidige Animation beim Ändern der Werte
+        circle.style.transition = "stroke-dasharray 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), stroke 0.3s";
+        return circle;
+    }
+
+    init();
+</script>
+
+</body>
+</html>
