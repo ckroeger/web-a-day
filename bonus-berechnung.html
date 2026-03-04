@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bonus-Berechnung</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+        h1 {
+          text-align: center;
+          margin-top: 1.5em;
+          margin-bottom: 0.5em;
+          font-size: 2.1em;
+          color: #1976d2;
+          letter-spacing: 0.02em;
+        }
+    body { font-family: system-ui, sans-serif; background: #f4f6fa; margin: 0; }
+    .bonus-form {
+      max-width: 420px;
+      margin: 2em auto;
+      padding: 2em 1em;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px #0001;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+    }
+    .bonus-form label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 500;
+      gap: 0.3em;
+    }
+    .bonus-form input {
+      font-size: 1.1em;
+      padding: 0.5em;
+      border-radius: 6px;
+      border: 1px solid #cfd8dc;
+      background: #f7f9fa;
+      margin-top: 0.1em;
+    }
+    .bonus-form input:focus {
+      outline: 2px solid #1976d2;
+      border-color: #1976d2;
+      background: #e3f2fd;
+    }
+    .bonus-form .fokus {
+      background: #e3f2fd;
+      border-color: #1976d2;
+    }
+    .bonus-form .optional-panel {
+      background: #f7f9fa;
+      border-radius: 8px;
+      padding: 0.7em 1em;
+      margin-top: 0.5em;
+      box-shadow: 0 1px 6px #0001;
+    }
+    .bonus-form .optional-toggle {
+      background: none;
+      border: none;
+      color: #1976d2;
+      font-size: 1em;
+      cursor: pointer;
+      margin-bottom: 0.2em;
+      text-align: left;
+      padding: 0;
+    }
+    .bonus-result {
+      margin-top: 2em;
+      font-weight: 500;
+      font-size: 1.2em;
+      background: #e3f2fd;
+      border-radius: 8px;
+      padding: 1em;
+      box-shadow: 0 1px 8px #0001;
+      text-align: center;
+      color: #1976d2;
+    }
+    @media (max-width: 600px) {
+      .bonus-form { max-width: 98vw; padding: 1em 0.2em; }
+      .bonus-result { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Bonus-Berechnung</h1>
+  <form class="bonus-form" onsubmit="event.preventDefault(); berechneBonus();">
+    <label>
+      Fakturastunden (z.B. 120,5 oder 120.5):
+      <input type="text" id="stunden" pattern="[0-9]+([\.,][0-9]*)?" oninput="stundenZuTage()" autocomplete="off" class="fokus">
+    </label>
+    <label>
+      Fakturatage:
+      <input type="text" id="tage" pattern="[0-9]+([\.,][0-9]*)?" oninput="tageZuStunden()" autocomplete="off" class="fokus">
+    </label>
+    <label>
+      Bonusbetrag für 100%:
+      <input type="number" id="bonus100" min="0" value="1000" required class="fokus" oninput="berechneBonus()">
+    </label>
+    <button type="button" class="optional-toggle" onclick="toggleOptional()">Optionale Einstellungen anzeigen</button>
+    <div id="optionalPanel" class="optional-panel" style="display:none;">
+      <label>
+        Mindesttage (optional, Standard: 205):
+        <input type="number" id="mindesttage" min="0" placeholder="205">
+      </label>
+      <label>
+        Maximale Bonus-% (Standard: 200):
+        <input type="number" id="maxProzent" min="100" max="200" value="200">
+      </label>
+    </div>
+    <button type="submit">Berechnen</button>
+  </form>
+  <div class="bonus-result" id="bonusResult"></div>
+  <script>
+    function alleFelderGefuellt() {
+      const stunden = document.getElementById('stunden').value.trim();
+      const tage = document.getElementById('tage').value.trim();
+      const bonus100 = document.getElementById('bonus100').value.trim();
+      return stunden !== '' && tage !== '' && bonus100 !== '';
+    }
+
+    function berechneBonus() {
+      let stundenRaw = document.getElementById('stunden').value.trim();
+      let tageRaw = document.getElementById('tage').value.trim();
+      stundenRaw = stundenRaw.replace(',', '.');
+      tageRaw = tageRaw.replace(',', '.');
+      let fakturastunden = parseFloat(stundenRaw);
+      let fakturatage = parseFloat(tageRaw);
+      let tage;
+      if (stundenRaw && !isNaN(fakturastunden)) {
+        tage = fakturastunden / 8;
+      } else if (tageRaw && !isNaN(fakturatage)) {
+        tage = fakturatage;
+        fakturastunden = fakturatage * 8;
+      } else {
+        document.getElementById('bonusResult').innerHTML = 'Bitte Fakturastunden oder Fakturatage eingeben.';
+        return;
+      }
+          // Automatische Neuberechnung bei Änderung in den drei Feldern
+          window.addEventListener('DOMContentLoaded', function() {
+            const stundenFeld = document.getElementById('stunden');
+            const tageFeld = document.getElementById('tage');
+            const bonusFeld = document.getElementById('bonus100');
+            function autoBerechnen() {
+              if (alleFelderGefuellt()) {
+                berechneBonus();
+              }
+            }
+            stundenFeld.addEventListener('input', autoBerechnen);
+            tageFeld.addEventListener('input', autoBerechnen);
+            bonusFeld.addEventListener('input', autoBerechnen);
+          });
+      let mindesttage = document.getElementById('mindesttage').value;
+      mindesttage = mindesttage ? parseFloat(mindesttage) : 205;
+      const bonus100 = parseFloat(document.getElementById('bonus100').value);
+      let maxProzent = document.getElementById('maxProzent').value;
+      maxProzent = maxProzent ? parseFloat(maxProzent) : 200;
+      let prozent = (tage / mindesttage) * 100;
+      if (prozent > maxProzent) prozent = maxProzent;
+      let bonus = (prozent / 100) * bonus100;
+      bonus = Math.round(bonus * 100) / 100;
+      document.getElementById('bonusResult').innerHTML = `<div><span style='font-size:1.3em;'>Zielerreichung:</span> <span style='font-weight:bold;'>${prozent.toFixed(1)}%</span></div><div><span style='font-size:1.3em;'>Bonusbetrag:</span> <span style='font-weight:bold;'>${bonus.toLocaleString('de-DE', {style: 'currency', currency: 'EUR'})}</span></div>`;
+    }
+
+    function toggleOptional() {
+      const panel = document.getElementById('optionalPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function stundenZuTage() {
+      let stundenRaw = document.getElementById('stunden').value.trim().replace(',', '.');
+      if (stundenRaw === '') {
+        document.getElementById('tage').value = '';
+        return;
+      }
+      let fakturastunden = parseFloat(stundenRaw);
+      if (!isNaN(fakturastunden)) {
+        document.getElementById('tage').value = (fakturastunden / 8).toFixed(2);
+      } else {
+        document.getElementById('tage').value = '';
+      }
+    }
+
+    function tageZuStunden() {
+      let tageRaw = document.getElementById('tage').value.trim().replace(',', '.');
+      if (tageRaw === '') {
+        document.getElementById('stunden').value = '';
+        return;
+      }
+      let fakturatage = parseFloat(tageRaw);
+      if (!isNaN(fakturatage)) {
+        document.getElementById('stunden').value = (fakturatage * 8).toFixed(2);
+      } else {
+        document.getElementById('stunden').value = '';
+      }
+    }
+  </script>
+</body>
+</html>
