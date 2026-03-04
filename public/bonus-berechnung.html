@@ -105,6 +105,10 @@
         <input type="number" id="mindesttage" min="0" placeholder="205">
       </label>
       <label>
+        Maximaltage für 200% (Standard: 220):
+        <input type="number" id="maximaltage" min="0" placeholder="220" value="220">
+      </label>
+      <label>
         Maximale Bonus-% (Standard: 200):
         <input type="number" id="maxProzent" min="100" max="200" value="200">
       </label>
@@ -153,12 +157,25 @@
           });
       let mindesttage = document.getElementById('mindesttage').value;
       mindesttage = mindesttage ? parseFloat(mindesttage) : 205;
+      let maximaltage = document.getElementById('maximaltage').value;
+      maximaltage = maximaltage ? parseFloat(maximaltage) : 220;
       const bonus100 = parseFloat(document.getElementById('bonus100').value);
       let maxProzent = document.getElementById('maxProzent').value;
       maxProzent = maxProzent ? parseFloat(maxProzent) : 200;
       let prozent = (tage / mindesttage) * 100;
-      if (prozent > maxProzent) prozent = maxProzent;
-      let bonus = (prozent / 100) * bonus100;
+      let bonus = 0;
+      // Kappung und Berechnung
+      if (tage < mindesttage) {
+        prozent = (tage / mindesttage) * 100;
+        bonus = 0;
+      } else if (tage >= maximaltage) {
+        prozent = 200;
+        bonus = bonus100 * 2;
+      } else {
+        prozent = (tage / mindesttage) * 100;
+        if (prozent > maxProzent) prozent = maxProzent;
+        bonus = (prozent / 100) * bonus100;
+      }
       bonus = Math.round(bonus * 100) / 100;
       document.getElementById('bonusResult').innerHTML = `<div><span style='font-size:1.3em;'>Zielerreichung:</span> <span style='font-weight:bold;'>${prozent.toFixed(1)}%</span></div><div><span style='font-size:1.3em;'>Bonusbetrag:</span> <span style='font-weight:bold;'>${bonus.toLocaleString('de-DE', {style: 'currency', currency: 'EUR'})}</span></div>`;
     }
