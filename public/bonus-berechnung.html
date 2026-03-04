@@ -105,6 +105,13 @@
   </form>
   <div class="bonus-result" id="bonusResult"></div>
   <script>
+    function alleFelderGefuellt() {
+      const stunden = document.getElementById('stunden').value.trim();
+      const tage = document.getElementById('tage').value.trim();
+      const bonus100 = document.getElementById('bonus100').value.trim();
+      return stunden !== '' && tage !== '' && bonus100 !== '';
+    }
+
     function berechneBonus() {
       let stundenRaw = document.getElementById('stunden').value.trim();
       let tageRaw = document.getElementById('tage').value.trim();
@@ -122,6 +129,20 @@
         document.getElementById('bonusResult').innerHTML = 'Bitte Fakturastunden oder Fakturatage eingeben.';
         return;
       }
+          // Automatische Neuberechnung bei Änderung in den drei Feldern
+          window.addEventListener('DOMContentLoaded', function() {
+            const stundenFeld = document.getElementById('stunden');
+            const tageFeld = document.getElementById('tage');
+            const bonusFeld = document.getElementById('bonus100');
+            function autoBerechnen() {
+              if (alleFelderGefuellt()) {
+                berechneBonus();
+              }
+            }
+            stundenFeld.addEventListener('input', autoBerechnen);
+            tageFeld.addEventListener('input', autoBerechnen);
+            bonusFeld.addEventListener('input', autoBerechnen);
+          });
       let mindesttage = document.getElementById('mindesttage').value;
       mindesttage = mindesttage ? parseFloat(mindesttage) : 205;
       const bonus100 = parseFloat(document.getElementById('bonus100').value);
