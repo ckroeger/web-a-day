@@ -13,12 +13,11 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "rollup": "^2.56.3",
-    "rollup-plugin-filesize": "^10.0.0",
+    "rollup-plugin-filesize": "^7.0.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-serve": "^1.1.0",
-    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript": "^1.0.1"
   },
   "dependencies": {

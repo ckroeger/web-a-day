@@ -1,0 +1,82 @@
+        <!-- Slide 6: Architektur -->
+        <div id="architektur" class="step" data-x="7000" data-y="-600" data-z="-800" data-rotate-y="-20" data-rotate-x="5" data-scale="1.1">
+            <div class="decorative-dots">
+                <span style="background: #ff5f56;"></span>
+                <span style="background: #ffbd2e;"></span>
+                <span style="background: #27c93f;"></span>
+            </div>
+            <span class="slide-number">06 / 17</span>
+            <h2>🏗️ Architektur</h2>
+            <div style="margin-top: 20px; display: flex; justify-content: center;">
+                <svg width="1000" height="420" viewBox="0 0 1000 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- React Frontend -->
+                    <rect x="30" y="160" width="180" height="90" rx="12" fill="rgba(0, 212, 255, 0.1)" stroke="#00d4ff" stroke-width="2"/>
+                    <text x="120" y="195" text-anchor="middle" fill="#00d4ff" font-size="14" font-weight="700">⚛️ React Frontend</text>
+                    <text x="120" y="220" text-anchor="middle" fill="#94a3b8" font-size="11">TypeScript / Vite</text>
+                    <text x="120" y="238" text-anchor="middle" fill="#64748b" font-size="10">Port 3000</text>
+
+                    <!-- Arrow 1 -->
+                    <path d="M210 205 L280 205" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="245" y="195" text-anchor="middle" fill="#64748b" font-size="9">HTTP/S</text>
+
+                    <!-- API Gateway -->
+                    <rect x="280" y="160" width="160" height="90" rx="12" fill="rgba(245, 158, 11, 0.1)" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="360" y="195" text-anchor="middle" fill="#f59e0b" font-size="14" font-weight="700">🌐 API Gateway</text>
+                    <text x="360" y="220" text-anchor="middle" fill="#94a3b8" font-size="11">Spring Cloud Gateway</text>
+                    <text x="360" y="238" text-anchor="middle" fill="#64748b" font-size="10">Port 8080</text>
+
+                    <!-- Arrow 2 -->
+                    <path d="M440 205 L520 205" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="480" y="195" text-anchor="middle" fill="#64748b" font-size="9">REST</text>
+
+                    <!-- Spring Boot Backend -->
+                    <rect x="520" y="160" width="180" height="90" rx="12" fill="rgba(124, 58, 237, 0.1)" stroke="#7c3aed" stroke-width="2"/>
+                    <text x="610" y="195" text-anchor="middle" fill="#7c3aed" font-size="14" font-weight="700">☕ Spring Boot</text>
+                    <text x="610" y="220" text-anchor="middle" fill="#94a3b8" font-size="11">Java 21 / REST API</text>
+                    <text x="610" y="238" text-anchor="middle" fill="#64748b" font-size="10">Port 8081</text>
+
+                    <!-- Arrow 3 -->
+                    <path d="M700 205 L780 205" stroke="#475569" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text x="740" y="195" text-anchor="middle" fill="#64748b" font-size="9">JDBC</text>
+
+                    <!-- PostgreSQL -->
+                    <rect x="780" y="160" width="180" height="90" rx="12" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="2"/>
+                    <text x="870" y="195" text-anchor="middle" fill="#10b981" font-size="14" font-weight="700">🐘 PostgreSQL</text>
+                    <text x="870" y="220" text-anchor="middle" fill="#94a3b8" font-size="11">Database</text>
+                    <text x="870" y="238" text-anchor="middle" fill="#64748b" font-size="10">Port 5432</text>
+
+                    <!-- Keycloak -->
+                    <rect x="320" y="320" width="200" height="80" rx="12" fill="rgba(239, 68, 68, 0.1)" stroke="#ef4444" stroke-width="2"/>
+                    <text x="420" y="355" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="700">🔐 Keycloak IdP</text>
+                    <text x="420" y="378" text-anchor="middle" fill="#94a3b8" font-size="11">OAuth2 / OIDC</text>
+                    <text x="420" y="393" text-anchor="middle" fill="#64748b" font-size="10">Port 8443</text>
+
+                    <!-- Arrow from Frontend to Keycloak -->
+                    <path d="M120 250 L120 340 L320 360" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowred)"/>
+                    <text x="180" y="310" fill="#ef4444" font-size="9">Login Flow</text>
+
+                    <!-- Arrow from Gateway to Keycloak -->
+                    <path d="M360 250 L400 320" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowred)"/>
+                    <text x="350" y="290" fill="#ef4444" font-size="9">Token Validation</text>
+
+                    <!-- Arrow from Backend to Keycloak -->
+                    <path d="M610 250 L480 320" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowred)"/>
+                    <text x="560" y="295" fill="#ef4444" font-size="9">JWT Verify</text>
+
+                    <!-- User -->
+                    <text x="120" y="130" text-anchor="middle" fill="#e2e8f0" font-size="30">👤</text>
+                    <text x="120" y="150" text-anchor="middle" fill="#94a3b8" font-size="11">User / Browser</text>
+
+                    <!-- Arrow markers -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+                        </marker>
+                        <marker id="arrowred" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ef4444"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
