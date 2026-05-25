@@ -5,6 +5,7 @@
 - HTML, CSS, and JavaScript structure
 - Live server for development
 - Bundling with Rollup
+- Modulare impress.js Presentation mit ausgelagerten Slides
 
 ## Structure
 
@@ -27,3 +28,8 @@ Start the live server and watch for changes:
 ```sh
 npm run dev
 ```
+
+## Präsentation (modular)
+
+- Einstieg: [public/ARENA_Kickoff_Presentation_modular.html](public/ARENA_Kickoff_Presentation_modular.html)
+- Loader-Dokumentation: [public/arena-kickoff-modular/LOADER_DOKU.md](public/arena-kickoff-modular/LOADER_DOKU.md)
