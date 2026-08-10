@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Project Timeline Dashboard</title>
+<style>
+  :root{
+    --bg:#0b1220;
+    --panel:#0f1a2e;
+    --panel2:#111f38;
+    --text:#e8eefc;
+    --muted:#a9b4d6;
+    --accent:#6ea8fe;
+    --accent2:#66f0c1;
+    --danger:#ff6b6b;
+    --warn:#ffd166;
+    --ok:#06d6a0;
+    --grid:rgba(255,255,255,.08);
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius:16px;
+    --radius2:12px;
+    --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:var(--font);
+    color:var(--text);
+    background: radial-gradient(1000px 600px at 20% 10%, rgba(110,168,254,.18), transparent 60%),
+                radial-gradient(900px 500px at 80% 20%, rgba(102,240,193,.14), transparent 60%),
+                linear-gradient(180deg, #070b14, #0b1220 30%, #070b14);
+    min-height:100vh;
+  }
+  a{color:inherit}
+  .app{
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 22px 18px 28px;
+  }
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .titleblock{
+    display:flex; flex-direction:column; gap:6px;
+  }
+  h1{
+    margin:0;
+    font-size: 22px;
+    letter-spacing:.3px;
+  }
+  .subtitle{color:var(--muted); font-size:13px; line-height:1.4}
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:flex-end;
+    align-items:center;
+  }
+  .chip{
+    background: rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    padding:8px 10px;
+    border-radius: 999px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+  .chip label{font-size:12px; color:var(--muted)}
+  .chip input,.chip select{
+    background: transparent;
+    border:0;
+    outline:none;
+    color:var(--text);
+    font-size:12px;
+    min-width:140px;
+  }
+  .chip input::placeholder{color:rgba(232,238,252,.45)}
+  .btn{
+    cursor:pointer;
+    user-select:none;
+    border-radius:999px;
+    padding:10px 12px;
+    border:1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.06);
+    color:var(--text);
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.2px;
+    transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.20)}
+  .btn.primary{background: linear-gradient(90deg, rgba(110,168,254,.18), rgba(102,240,193,.14)); border-color: rgba(110,168,254,.35)}
+  .btn.danger{background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.35)}
+  .kpis{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap:12px;
+    margin: 10px 0 14px;
+  }
+  @media (max-width: 900px){
+    header{flex-direction:column; align-items:stretch}
+    .toolbar{justify-content:flex-start}
+    .kpis{grid-template-columns: repeat(2, minmax(0,1fr));}
+  }
+  .kpi{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius);
+    padding:12px 12px;
+    box-shadow: var(--shadow);
+    display:flex; flex-direction:column; gap:6px;
+    min-height:78px;
+  }
+  .kpi .label{color:var(--muted); font-size:12px}
+  .kpi .value{font-size:20px; font-weight:800}
+  .kpi .hint{color:rgba(232,238,252,.65); font-size:12px}
+  .panel{
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    padding:10px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.08);
+    flex-wrap:wrap;
+  }
+  .tab{
+    padding:8px 10px;
+    border-radius: 999px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04);
+    color:rgba(232,238,252,.85);
+    cursor:pointer;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  .tab.active{
+    background: linear-gradient(90deg, rgba(110,168,254,.22), rgba(102,240,193,.16));
+    border-color: rgba(110,168,254,.35);
+    color:var(--text);
+  }
+  .content{
+    padding: 12px;
+  }
+  .view{display:none}
+  .view.active{display:block}
+
+  /* Generic tables/lists */
+  .table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius2);
+  }
+  .table thead th{
+    text-align:left;
+    font-size:12px;
+    padding:10px 10px;
+    color:rgba(232,238,252,.75);
+    background: rgba(0,0,0,.18);
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .table tbody td{
+    padding:10px 10px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    font-size:13px;
+    color:rgba(232,238,252,.92);
+    vertical-align:top;
+  }
+  .table tbody tr:hover{background: rgba(255,255,255,.03)}
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04);
+    color:rgba(232,238,252,.90);
+    white-space:nowrap;
+  }
+  .dot{width:8px;height:8px;border-radius:999px;display:inline-block}
+  .pill.ok .dot{background:var(--ok)}
+  .pill.warn .dot{background:var(--warn)}
+  .pill.danger .dot{background:var(--danger)}
+  .pill.neutral .dot{background:rgba(232,238,252,.5)}
+
+  /* Cards */
+  .cards{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap:12px;
+  }
+  @media (max-width: 900px){
+    .cards{grid-template-columns: repeat(1, minmax(0,1fr));}
+  }
+  .card{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius);
+    background: rgba(0,0,0,.10);
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    position:relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute; inset:-2px;
+    background: radial-gradient(600px 180px at 20% 0%, rgba(110,168,254,.18), transparent 60%),
+                radial-gradient(600px 220px at 90% 10%, rgba(102,240,193,.12), transparent 60%);
+    opacity:.7;
+    pointer-events:none;
+  }
+  .card > *{position:relative}
+  .card .top{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+  }
+  .card h3{margin:0; font-size:14px; letter-spacing:.2px}
+  .meta{color:rgba(232,238,252,.68); font-size:12px; line-height:1.45}
+  .bar{
+    height:10px;
+    border-radius:999px;
+    background: rgba(255,255,255,.08);
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .bar > span{
+    display:block; height:100%;
+    background: linear-gradient(90deg, rgba(110,168,254,.85), rgba(102,240,193,.85));
+    width:0%;
+    transition: width .35s ease;
+  }
+  .row{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  }
+  .small{font-size:12px; color:rgba(232,238,252,.72)}
+  .actions{display:flex; gap:8px; flex-wrap:wrap}
+  .miniBtn{
+    padding:7px 10px;
+    border-radius:999px;
+    background: rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.12);
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .miniBtn:hover{background: rgba(255,255,255,.06)}
+  .modalWrap{
+    position:fixed; inset:0;
+    display:none;
+    place-items:center;
+    background: rgba(0,0,0,.60);
+    z-index:50;
+    padding:18px;
+  }
+  .modalWrap.show{display:grid}
+  .modal{
+    width:min(720px, 100%);
+    background: linear-gradient(180deg, rgba(15,26,46,.98), rgba(10,16,30,.98));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .modal header{
+    margin:0;
+    padding:12px 14px;
+    border-bottom:1px solid rgba(255,255,255,.10);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .modal header h2{margin:0; font-size:14px}
+  .modal .body{padding:14px}
+  .kv{
+    display:grid;
+    grid-template-columns: 140px 1fr;
+    gap:10px 12px;
+    font-size:13px;
+  }
+  .kv .k{color:rgba(232,238,252,.65)}
+  .kv .v{color:rgba(232,238,252,.94)}
+  .modal footer{
+    display:flex; justify-content:flex-end; gap:10px;
+    padding:12px 14px;
+    border-top:1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+  }
+
+  /* Gantt */
+  .ganttWrap{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius2);
+    overflow:hidden;
+    background: rgba(0,0,0,.10);
+  }
+  .ganttHeader{
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    gap:0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.18);
+  }
+  .ganttHeader .left{
+    padding:10px;
+    border-right:1px solid rgba(255,255,255,.08);
+    color:rgba(232,238,252,.75);
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .ganttHeader .right{
+    padding:10px;
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    color:rgba(232,238,252,.75);
+    font-size:12px;
+  }
+  .ganttGrid{
+    position:relative;
+    overflow:auto;
+    max-height: 520px;
+  }
+  .ganttRow{
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    min-height:46px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .ganttRow:hover{background: rgba(255,255,255,.02)}
+  .ganttTask{
+    padding:10px;
+    border-right:1px solid rgba(255,255,255,.06);
+    display:flex;
+    gap:8px;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .ganttTask .name{font-size:13px; font-weight:800}
+  .ganttTask .sub{font-size:12px; color:rgba(232,238,252,.60)}
+  .ganttTimeline{
+    position:relative;
+    padding:8px 10px;
+  }
+  .ganttTimeline .lane{
+    position:relative;
+    height:28px;
+    border-radius:999px;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,.00) 0px,
+        rgba(255,255,255,.00) 18px,
+        rgba(255,255,255,.06) 18px,
+        rgba(255,255,255,.06) 19px);
+    border:1px solid rgba(255,255,255,.08);
+    overflow:hidden;
+  }
+  .ganttBar{
+    position:absolute;
+    top:50%;
+    transform: translateY(-50%);
+    height:18px;
+    border-radius:999px;
+    background: linear-gradient(90deg, rgba(110,168,254,.95), rgba(102,240,193,.90));
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    cursor:pointer;
+  }
+  .ganttBar.danger{background: linear-gradient(90deg, rgba(255,107,107,.92), rgba(255,209,102,.85))}
+  .ganttBar.warn{background: linear-gradient(90deg, rgba(255,209,102,.92), rgba(110,168,254,.78))}
+  .ganttBar .lbl{
+    position:absolute;
+    left:10px; top:50%;
+    transform: translateY(-50%);
+    font-size:11px;
+    font-weight:900;
+    color: rgba(0,0,0,.75);
+    mix-blend-mode: screen;
+    text-shadow: 0 1px 0 rgba(0,0,0,.35);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .todayLine{
+    position:absolute; top:0; bottom:0;
+    width:2px;
+    background: rgba(255,255,255,.75);
+    opacity:.55;
+    pointer-events:none;
+  }
+
+  /* Calendar */
+  .calHeader{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    margin-bottom:10px;
+  }
+  .calTitle{font-weight:900; letter-spacing:.2px}
+  .calGrid{
+    display:grid;
+    grid-template-columns: repeat(7, minmax(0,1fr));
+    gap:8px;
+  }
+  .dow{
+    font-size:11px;
+    color:rgba(232,238,252,.65);
+    padding:6px 8px;
+  }
+  .day{
+    min-height:110px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    background: rgba(0,0,0,.10);
+    padding:8px;
+    overflow:hidden;
+    position:relative;
+  }
+  .day .num{
+    font-size:12px;
+    color:rgba(232,238,252,.70);
+    font-weight:800;
+  }
+  .day.muted{opacity:.55}
+  .event{
+    margin-top:6px;
+    padding:6px 8px;
+    border-radius: 12px;
+    border:1px solid rgba(255,255,255,.12);
+    background: rgba(110,168,254,.12);
+    font-size:11px;
+    cursor:pointer;
+    line-height:1.3;
+  }
+  .event.small{
+    padding:4px 6px;
+    border-radius: 10px;
+  }
+  .event.ok{background: rgba(6,214,160,.12)}
+  .event.warn{background: rgba(255,209,102,.12)}
+  .event.danger{background: rgba(255,107,107,.12)}
+  .event .t{font-weight:900}
+  .event .p{color:rgba(232,238,252,.65); font-weight:700}
+
+  /* Animated timeline */
+  .tlWrap{
+    border:1px solid rgba(255,255,255,.10);
+    border-radius: var(--radius2);
+    overflow:hidden;
+    background: rgba(0,0,0,.10);
+  }
+  .tlControls{
+    display:flex; gap:10px; align-items:center; justify-content:space-between;
+    padding:10px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background: rgba(0,0,0,.18);
+  }
+  .range{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    color:rgba(232,238,252,.75); font-size:12px;
+  }
+  input[type="range"]{width:280px}
+  .tlCanvas{
+    position:relative;
+    height: 420px;
+    overflow:auto;
+    padding:18px 14px 18px;
+  }
+  .tlLine{
+    position:absolute;
+    left:38px; top:0; bottom:0;
+    width:2px;
+    background: rgba(255,255,255,.14);
+  }
+  .node{
+    position:relative;
+    display:flex;
+    gap:12px;
+    margin: 0 0 18px 0;
+    padding-left: 10px;
+    opacity:.0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .node.show{
+    opacity:1;
+    transform: translateY(0px);
+  }
+  .node .bullet{
+    width:18px; height:18px; border-radius:999px;
+    background: rgba(110,168,254,.95);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    flex:0 0 auto;
+    margin-left: 20px;
+    margin-top: 2px;
+  }
+  .node.warn .bullet{background: rgba(255,209,102,.95)}
+  .node.danger .bullet{background: rgba(255,107,107,.95)}
+  .node.ok .bullet{background: rgba(6,214,160,.95)}
+  .node .box{
+    flex: 1 1 auto;
+    border:1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.04);
+    border-radius: 14px;
+    padding:10px 10px;
+  }
+  .node .top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  }
+  .node .when{color:rgba(232,238,252,.70); font-size:12px; font-weight:800}
+  .node .name{font-weight:900; letter-spacing:.2px}
+  .node .meta2{color:rgba(232,238,252,.65); font-size:12px; margin-top:4px; line-height:1.4}
+  .footerNote{
+    color:rgba(232,238,252,.55);
+    font-size:12px;
+    padding:10px 2px 0;
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="titleblock">
+        <h1>Interactive Project Timeline Dashboard</h1>
+        <div class="subtitle">Five views (Gantt, Cards, Compact List, Calendar, Animated Timeline) with filtering, search, and export to a standalone HTML file.</div>
+      </div>
+      <div class="toolbar">
+        <div class="chip">
+          <label for="q">Search</label>
+          <input id="q" placeholder="Task, owner, tag..." />
+        </div>
+        <div class="chip">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="all">All</option>
+            <option value="not-started">Not started</option>
+            <option value="in-progress">In progress</option>
+            <option value="blocked">Blocked</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+        <div class="chip">
+          <label for="owner">Owner</label>
+          <select id="owner"><option value="all">All</option></select>
+        </div>
+        <button class="btn primary" id="downloadBtn" title="Download this dashboard as a single HTML file">Download HTML</button>
+        <button class="btn danger" id="resetBtn" title="Reset filters">Reset</button>
+      </div>
+    </header>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="panel">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-view="gantt">Gantt chart</button>
+        <button class="tab" data-view="cards">Card view</button>
+        <button class="tab" data-view="list">Compact list</button>
+        <button class="tab" data-view="calendar">Calendar view</button>
+        <button class="tab" data-view="timeline">Animated timeline</button>
+      </div>
+
+      <div class="content">
+        <div class="view active" id="view-gantt"></div>
+        <div class="view" id="view-cards"></div>
+        <div class="view" id="view-list"></div>
+        <div class="view" id="view-calendar"></div>
+        <div class="view" id="view-timeline"></div>
+
+        <div class="footerNote">
+          Tip: Click any task (Gantt bar, card, list row, calendar event, or timeline node) to open details.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modalWrap" id="modalWrap" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal">
+      <header>
+        <h2 id="modalTitle">Task details</h2>
+        <button class="btn" id="modalClose">Close</button>
+      </header>
+      <div class="body">
+        <div class="kv" id="modalKV"></div>
+      </div>
+      <footer>
+        <button class="btn primary" id="modalJump">Jump to task</button>
+        <button class="btn" id="modalClose2">Close</button>
+      </footer>
+    </div>
+  </div>
+
+<script>
+/** =========================
+ *  Project data (edit here)
+ *  ========================= */
+const PROJECT = {
+  name: "Website Redesign + Product Launch",
+  timezone: "local",
+  tasks: [
+    {
+      id:"T-001",
+      name:"Discovery & stakeholder interviews",
+      owner:"Aisha",
+      status:"complete",
+      start:"2026-06-03",
+      end:"2026-06-10",
+      percent:100,
+      tags:["research","alignment"],
+      dependsOn:[],
+      notes:"Summarize goals, constraints, and success metrics."
+    },
+    {
+      id:"T-002",
+      name:"Information architecture & content audit",
+      owner:"Ben",
+      status:"complete",
+      start:"2026-06-08",
+      end:"2026-06-17",
+      percent:100,
+      tags:["content","IA"],
+      dependsOn:["T-001"],
+      notes:"Audit existing pages and define the new sitemap."
+    },
+    {
+      id:"T-003",
+      name:"Design system refresh (components, tokens)",
+      owner:"Chen",
+      status:"in-progress",
+      start:"2026-06-15",
+      end:"2026-07-05",
+      percent:65,
+      tags:["design","ui"],
+      dependsOn:["T-001"],
+      notes:"Update typography scale, colors, spacing, and components."
+    },
+    {
+      id:"T-004",
+      name:"High-fidelity page designs",
+      owner:"Chen",
+      status:"in-progress",
+      start:"2026-06-25",
+      end:"2026-07-18",
+      percent:45,
+      tags:["design","pages"],
+      dependsOn:["T-002","T-003"],
+      notes:"Key templates: Home, Product, Pricing, Docs, Blog."
+    },
+    {
+      id:"T-005",
+      name:"Frontend implementation",
+      owner:"Diego",
+      status:"in-progress",
+      start:"2026-07-01",
+      end:"2026-08-01",
+      percent:35,
+      tags:["engineering","frontend"],
+      dependsOn:["T-003","T-004"],
+      notes:"Build responsive UI and integrate content."
+    },
+    {
+      id:"T-006",
+      name:"Backend/API adjustments",
+      owner:"Evelyn",
+      status:"not-started",
+      start:"2026-07-10",
+      end:"2026-07-28",
+      percent:0,
+      tags:["engineering","backend"],
+      dependsOn:["T-002"],
+      notes:"Update endpoints, caching, and CMS integration."
+    },
+    {
+      id:"T-007",
+      name:"QA & accessibility validation",
+      owner:"Farah",
+      status:"not-started",
+      start:"2026-07-26",
+      end:"2026-08-08",
+      percent:0,
+      tags:["qa","a11y"],
+      dependsOn:["T-005","T-006"],
+      notes:"Cross-browser, mobile, lighthouse, WCAG checks."
+    },
+    {
+      id:"T-008",
+      name:"Launch readiness (SEO, redirects, analytics)",
+      owner:"Aisha",
+      status:"blocked",
+      start:"2026-08-02",
+      end:"2026-08-12",
+      percent:10,
+      tags:["launch","seo"],
+      dependsOn:["T-007"],
+      notes:"Blocked pending final URL map and QA sign-off."
+    },
+    {
+      id:"T-009",
+      name:"Public launch",
+      owner:"Ben",
+      status:"not-started",
+      start:"2026-08-15",
+      end:"2026-08-15",
+      percent:0,
+      tags:["launch"],
+      dependsOn:["T-008"],
+      notes:"Go-live and post-launch monitoring."
+    }
+  ]
+};
+
+/** =========================
+ *  Utilities
+ *  ========================= */
+const $ = (sel, el=document) => el.querySelector(sel);
+const $$ = (sel, el=document) => [...el.querySelectorAll(sel)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const toDate = (iso) => {
+  const [y,m,d] = iso.split("-").map(Number);
+  // Use local date to avoid timezone shifting in UI.
+  return new Date(y, m-1, d, 12, 0, 0, 0);
+};
+const fmt = (d) => d.toLocaleDateString(undefined, {year:"numeric", month:"short", day:"2-digit"});
+const daysBetween = (a,b) => Math.round((toDate(b) - toDate(a)) / 86400000);
+const addDays = (d, n) => new Date(d.getTime() + n*86400000);
+const isoDate = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+};
+function statusLabel(s){
+  return ({
+    "not-started":"Not started",
+    "in-progress":"In progress",
+    "blocked":"Blocked",
+    "complete":"Complete"
+  })[s] || s;
+}
+function statusClass(s){
+  return ({
+    "complete":"ok",
+    "in-progress":"warn",
+    "blocked":"danger",
+    "not-started":"neutral"
+  })[s] || "neutral";
+}
+function severityColor(s){
+  return ({
+    "complete":"ok",
+    "in-progress":"warn",
+    "blocked":"danger",
+    "not-started":"neutral"
+  })[s] || "neutral";
+}
+function taskById(id){ return PROJECT.tasks.find(t=>t.id===id); }
+
+function computePlanBounds(tasks){
+  let min = toDate(tasks[0].start), max = toDate(tasks[0].end);
+  for(const t of tasks){
+    const s = toDate(t.start), e = toDate(t.end);
+    if(s < min) min = s;
+    if(e > max) max = e;
+  }
+  // pad a bit for nicer Gantt
+  min = addDays(min, -2);
+  max = addDays(max, +2);
+  return {min, max, totalDays: Math.max(1, Math.round((max-min)/86400000))};
+}
+
+function matchesFilter(task, {q, status, owner}){
+  const hay = `${task.id} ${task.name} ${task.owner} ${(task.tags||[]).join(" ")} ${task.status}`.toLowerCase();
+  if(q && !hay.includes(q.toLowerCase())) return false;
+  if(status !== "all" && task.status !== status) return false;
+  if(owner !== "all" && task.owner !== owner) return false;
+  return true;
+}
+
+function depText(task){
+  if(!task.dependsOn || task.dependsOn.length===0) return "—";
+  return task.dependsOn.map(id=>{
+    const t = taskById(id);
+    return t ? `${t.id} (${t.name})` : id;
+  }).join(", ");
+}
+
+function openModal(task){
+  const wrap = $("#modalWrap");
+  wrap.classList.add("show");
+  wrap.setAttribute("aria-hidden","false");
+  $("#modalTitle").textContent = `${task.id} • ${task.name}`;
+  const kv = $("#modalKV");
+  kv.innerHTML = "";
+  const rows = [
+    ["Owner", task.owner],
+    ["Status", statusLabel(task.status)],
+    ["Start", fmt(toDate(task.start))],
+    ["End", fmt(toDate(task.end))],
+    ["Duration", `${Math.max(1, daysBetween(task.start, task.end) + 1)} day(s)`],
+    ["Progress", `${task.percent||0}%`],
+    ["Tags", (task.tags && task.tags.length) ? task.tags.join(", ") : "—"],
+    ["Depends on", depText(task)],
+    ["Notes", task.notes || "—"]
+  ];
+  for(const [k,v] of rows){
+    const kEl = document.createElement("div");
+    kEl.className = "k";
+    kEl.textContent = k;
+    const vEl = document.createElement("div");
+    vEl.className = "v";
+    vEl.textContent = v;
+    kv.appendChild(kEl); kv.appendChild(vEl);
+  }
+  $("#modalJump").onclick = () => {
+    // switch to list and scroll
+    setView("list");
+    setTimeout(()=>{
+      const row = document.getElementById(`row-${task.id}`);
+      if(row){ row.scrollIntoView({behavior:"smooth", block:"center"}); row.style.outline="2px solid rgba(110,168,254,.6)"; setTimeout(()=>row.style.outline="none",1200); }
+    }, 60);
+    closeModal();
+  };
+}
+function closeModal(){
+  const wrap = $("#modalWrap");
+  wrap.classList.remove("show");
+  wrap.setAttribute("aria-hidden","true");
+}
+$("#modalClose").addEventListener("click", closeModal);
+$("#modalClose2").addEventListener("click", closeModal);
+$("#modalWrap").addEventListener("click", (e)=>{ if(e.target.id==="modalWrap") closeModal(); });
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
+
+/** =========================
+ *  Rendering
+ *  ========================= */
+let state = {
+  view: "gantt",
+  q: "",
+  status: "all",
+  owner: "all",
+  calendarMonth: null, // Date pointing to first day of month
+  timelineCursor: 0 // 0..1
+};
+
+function setView(view){
+  state.view = view;
+  $$("#tabs .tab").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  $$(".view").forEach(v=>v.classList.remove("active"));
+  $(`#view-${view}`).classList.add("active");
+  render();
+}
+
+function renderKPIs(tasks){
+  const total = tasks.length;
+  const by = (s) => tasks.filter(t=>t.status===s).length;
+  const done = by("complete");
+  const blocked = by("blocked");
+  const inprog = by("in-progress");
+  const notstart = by("not-started");
+  const avg = total ? Math.round(tasks.reduce((a,t)=>a+(t.percent||0),0)/total) : 0;
+
+  // schedule health: blocked or overdue
+  const today = new Date();
+  const overdue = tasks.filter(t=>toDate(t.end) < today && t.status !== "complete").length;
+  const health = (blocked + overdue) === 0 ? "On track" : (blocked ? "At risk" : "Needs attention");
+
+  const kpis = [
+    {label:"Tasks", value: total, hint: `${done} complete • ${inprog} in progress`},
+    {label:"Avg progress", value: `${avg}%`, hint: `Not started: ${notstart}`},
+    {label:"Blocked / Overdue", value: `${blocked} / ${overdue}`, hint: health},
+    {label:"Date range", value: (()=>{ const b=computePlanBounds(tasks); return `${fmt(b.min)} → ${fmt(b.max)}`; })(), hint: PROJECT.name}
+  ];
+  const host = $("#kpis");
+  host.innerHTML = "";
+  for(const k of kpis){
+    const el = document.createElement("div");
+    el.className = "kpi";
+    el.innerHTML = `<div class="label">${k.label}</div><div class="value">${k.value}</div><div class="hint">${k.hint}</div>`;
+    host.appendChild(el);
+  }
+}
+
+function renderGantt(tasks){
+  const host = $("#view-gantt");
+  host.innerHTML = "";
+
+  if(tasks.length===0){
+    host.innerHTML = `<div class="meta">No tasks match the current filters.</div>`;
+    return;
+  }
+
+  const {min, max, totalDays} = computePlanBounds(tasks);
+  const pxPerDay = 16; // timeline scale
+  const width = Math.max(600, totalDays * pxPerDay);
+
+  const wrap = document.createElement("div");
+  wrap.className = "ganttWrap";
+
+  const header = document.createElement("div");
+  header.className = "ganttHeader";
+  header.innerHTML = `
+    <div class="left">Task</div>
+    <div class="right">
+      <div><strong>${fmt(min)}</strong> → <strong>${fmt(max)}</strong></div>
+      <div style="color:rgba(232,238,252,.55)">Scale: ${pxPerDay}px/day</div>
+    </div>
+  `;
+  wrap.appendChild(header);
+
+  const grid = document.createElement("div");
+  grid.className = "ganttGrid";
+
+  // Today line
+  const today = new Date();
+  const todayOffset = Math.round((today - min)/86400000);
+  const todayLine = document.createElement("div");
+  todayLine.className = "todayLine";
+  todayLine.style.left = `${260 + 10 + clamp(todayOffset, 0, totalDays)*pxPerDay}px`;
+  grid.appendChild(todayLine);
+
+  for(const t of tasks){
+    const row = document.createElement("div");
+    row.className = "ganttRow";
+    const dur = Math.max(1, daysBetween(t.start, t.end) + 1);
+    const offset = Math.round((toDate(t.start)-min)/86400000);
+    const left = clamp(offset, 0, totalDays) * pxPerDay;
+    const barW = clamp(dur*pxPerDay, 12, width);
+
+    const leftCell = document.createElement("div");
+    leftCell.className = "ganttTask";
+    leftCell.innerHTML = `
+      <div class="name">${t.name}</div>
+      <div class="sub">${t.id} • ${t.owner} • ${statusLabel(t.status)} • ${t.percent||0}%</div>
+    `;
+
+    const rightCell = document.createElement("div");
+    rightCell.className = "ganttTimeline";
+
+    const lane = document.createElement("div");
+    lane.className = "lane";
+    lane.style.width = `${width}px`;
+
+    const bar = document.createElement("div");
+    bar.className = `ganttBar ${severityColor(t.status)}`;
+    bar.style.left = `${left + 6}px`;
+    bar.style.width = `${Math.min(barW, width-left)}px`;
+    bar.title = `${t.id} • ${fmt(toDate(t.start))} → ${fmt(toDate(t.end))}`;
+    bar.innerHTML = `<div class="lbl">${t.percent||0}%</div>`;
+    bar.addEventListener("click", ()=>openModal(t));
+    lane.appendChild(bar);
+
+    rightCell.appendChild(lane);
+    row.appendChild(leftCell);
+    row.appendChild(rightCell);
+    grid.appendChild(row);
+  }
+
+  wrap.appendChild(grid);
+  host.appendChild(wrap);
+}
+
+function renderCards(tasks){
+  const host = $("#view-cards");
+  host.innerHTML = "";
+  if(tasks.length===0){ host.innerHTML = `<div class="meta">No tasks match the current filters.</div>`; return; }
+
+  const grid = document.createElement("div");
+  grid.className = "cards";
+
+  for(const t of tasks){
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="top">
+        <div>
+          <h3>${t.name}</h3>
+          <div class="meta">${t.id} • ${t.owner}<br>${fmt(toDate(t.start))} → ${fmt(toDate(t.end))}</div>
+        </div>
+        <span class="pill ${statusClass(t.status)}"><span class="dot"></span>${statusLabel(t.status)}</span>
+      </div>
+      <div class="bar" aria-label="progress"><span style="width:${clamp(t.percent||0,0,100)}%"></span></div>
+      <div class="row">
+        <div class="small"><strong>${t.percent||0}%</strong> complete • ${(t.tags||[]).join(", ") || "no tags"}</div>
+        <div class="actions">
+          <button class="miniBtn">Details</button>
+        </div>
+      </div>
+    `;
+    el.querySelector(".miniBtn").addEventListener("click", ()=>openModal(t));
+    // clicking card opens too (except button already does)
+    el.addEventListener("click", (e)=>{ if(!e.target.classList.contains("miniBtn")) openModal(t); });
+    grid.appendChild(el);
+  }
+  host.appendChild(grid);
+}
+
+function renderList(tasks){
+  const host = $("#view-list");
+  host.innerHTML = "";
+  if(tasks.length===0){ host.innerHTML = `<div class="meta">No tasks match the current filters.</div>`; return; }
+
+  const table = document.createElement("table");
+  table.className = "table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th style="width:92px">ID</th>
+        <th>Task</th>
+        <th style="width:120px">Owner</th>
+        <th style="width:140px">Dates</th>
+        <th style="width:140px">Status</th>
+        <th style="width:92px">Progress</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
+  const tb = table.querySelector("tbody");
+  for(const t of tasks){
+    const tr = document.createElement("tr");
+    tr.id = `row-${t.id}`;
+    tr.style.cursor = "pointer";
+    tr.innerHTML = `
+      <td><strong>${t.id}</strong></td>
+      <td>
+        <div style="font-weight:900">${t.name}</div>
+        <div style="color:rgba(232,238,252,.60); font-size:12px; margin-top:2px">
+          Tags: ${(t.tags||[]).join(", ") || "—"} • Depends: ${t.dependsOn?.join(", ") || "—"}
+        </div>
+      </td>
+      <td>${t.owner}</td>
+      <td>${fmt(toDate(t.start))}<br><span style="color:rgba(232,238,252,.60)">${fmt(toDate(t.end))}</span></td>
+      <td><span class="pill ${statusClass(t.status)}"><span class="dot"></span>${statusLabel(t.status)}</span></td>
+      <td><strong>${t.percent||0}%</strong></td>
+    `;
+    tr.addEventListener("click", ()=>openModal(t));
+    tb.appendChild(tr);
+  }
+  host.appendChild(table);
+}
+
+function calendarEventsForMonth(tasks, monthDate){
+  // Return per-day events; for each task add "start" and "end" markers plus spanning highlight
+  const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1, 12);
+  const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth()+1, 0, 12);
+  const events = new Map(); // iso -> array
+  const push = (dIso, ev) => {
+    if(!events.has(dIso)) events.set(dIso, []);
+    events.get(dIso).push(ev);
+  };
+  for(const t of tasks){
+    const s = toDate(t.start), e = toDate(t.end);
+    // start/end markers if within month
+    if(s >= startOfMonth && s <= endOfMonth) push(isoDate(s), {type:"start", task:t});
+    if(e >= startOfMonth && e <= endOfMonth) push(isoDate(e), {type:"end", task:t});
+    // if spans the month, place a "span" marker on first day it appears in this month
+    if(s < startOfMonth && e >= startOfMonth) push(isoDate(startOfMonth), {type:"span", task:t});
+  }
+  // sort events per day: start, span, end
+  for(const [k, arr] of events.entries()){
+    arr.sort((a,b)=>({start:0, span:1, end:2}[a.type]-({start:0, span:1, end:2}[b.type]));
+  }
+  return events;
+}
+
+function renderCalendar(tasks){
+  const host = $("#view-calendar");
+  host.innerHTML = "";
+  if(tasks.length===0){ host.innerHTML = `<div class="meta">No tasks match the current filters.</div>`; return; }
+
+  // choose month based on plan bounds if not set
+  if(!state.calendarMonth){
+    const b = computePlanBounds(tasks);
+    state.calendarMonth = new Date(b.min.getFullYear(), b.min.getMonth(), 1, 12);
+  }
+
+  const m = state.calendarMonth;
+  const monthLabel = m.toLocaleDateString(undefined, {year:"numeric", month:"long"});
+  const controls = document.createElement("div");
+  controls.className = "calHeader";
+  controls.innerHTML = `
+    <div class="calTitle">${monthLabel}</div>
+    <div style="display:flex; gap:10px; align-items:center">
+      <button class="btn" id="prevMonth">◀</button>
+      <button class="btn" id="todayMonth">This month</button>
+      <button class="btn" id="nextMonth">▶</button>
+    </div>
+  `;
+
+  const dow = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const grid = document.createElement("div");
+  grid.className = "calGrid";
+  for(const d of dow){
+    const el = document.createElement("div");
+    el.className = "dow";
+    el.textContent = d;
+    grid.appendChild(el);
+  }
+
+  const first = new Date(m.getFullYear(), m.getMonth(), 1, 12);
+  const startWeekday = (first.getDay() + 6) % 7; // Monday=0
+  const daysInMonth = new Date(m.getFullYear(), m.getMonth()+1, 0, 12).getDate();
+
+  // previous month padding
+  const prevDays = startWeekday;
+  const prevMonthLastDay = new Date(m.getFullYear(), m.getMonth(), 0, 12).getDate();
+  const events = calendarEventsForMonth(tasks, m);
+
+  const makeDay = (num, muted, dateObj) => {
+    const el = document.createElement("div");
+    el.className = "day" + (muted ? " muted" : "");
+    el.innerHTML = `<div class="num">${num}</div>`;
+    const iso = isoDate(dateObj);
+    const evs = events.get(iso) || [];
+    // keep it compact: show at most 3, then "+n"
+    const maxE = 3;
+    evs.slice(0, maxE).forEach(ev=>{
+      const t = ev.task;
+      const e = document.createElement("div");
+      e.className = `event ${statusClass(t.status)} ${ev.type==="span" ? "small":""}`;
+      const suffix = ev.type==="start" ? "Start" : ev.type==="end" ? "End" : "In progress";
+      e.innerHTML = `<div class="t">${t.id} • ${suffix}</div><div class="p">${t.name}</div>`;
+      e.addEventListener("click", ()=>openModal(t));
+      el.appendChild(e);
+    });
+    if(evs.length > maxE){
+      const more = document.createElement("div");
+      more.className = "event small";
+      more.style.background = "rgba(255,255,255,.06)";
+      more.innerHTML = `<div class="t">+${evs.length-maxE} more</div>`;
+      el.appendChild(more);
+    }
+    return el;
+  };
+
+  // 6 weeks grid typical: 42 cells
+  const cells = [];
+  for(let i=0;i<prevDays;i++){
+    const dayNum = prevMonthLastDay - prevDays + i + 1;
+    const dObj = new Date(m.getFullYear(), m.getMonth()-1, dayNum, 12);
+    cells.push(makeDay(dayNum, true, dObj));
+  }
+  for(let day=1; day<=daysInMonth; day++){
+    const dObj = new Date(m.getFullYear(), m.getMonth(), day, 12);
+    cells.push(makeDay(day, false, dObj));
+  }
+  while(cells.length < 42){
+    const extra = cells.length - (prevDays + daysInMonth) + 1;
+    const dObj = new Date(m.getFullYear(), m.getMonth()+1, extra, 12);
+    cells.push(makeDay(extra, true, dObj));
+  }
+  cells.forEach(c=>grid.appendChild(c));
+
+  host.appendChild(controls);
+  host.appendChild(grid);
+
+  $("#prevMonth").onclick = ()=>{ state.calendarMonth = new Date(m.getFullYear(), m.getMonth()-1, 1, 12); render(); };
+  $("#nextMonth").onclick = ()=>{ state.calendarMonth = new Date(m.getFullYear(), m.getMonth()+1, 1, 12); render(); };
+  $("#todayMonth").onclick = ()=>{ const now=new Date(); state.calendarMonth = new Date(now.getFullYear(), now.getMonth(), 1, 12); render(); };
+}
+
+function buildTimelineNodes(tasks){
+  // timeline nodes are sorted by start date (tie: end, then id)
+  const sorted = [...tasks].sort((a,b)=>{
+    const as = toDate(a.start)-toDate(b.start);
+    if(as!==0) return as;
+    const ae = toDate(a.end)-toDate(b.end);
+    if(ae!==0) return ae;
+    return a.id.localeCompare(b.id);
+  });
+  return sorted.map(t=>({
+    t,
+    when: `${fmt(toDate(t.start))} → ${fmt(toDate(t.end))}`
+  }));
+}
+
+let timelineRAF = null;
+function renderTimeline(tasks){
+  const host = $("#view-timeline");
+  host.innerHTML = "";
+  if(tasks.length===0){ host.innerHTML = `<div class="meta">No tasks match the current filters.</div>`; return; }
+
+  const nodes = buildTimelineNodes(tasks);
+  const wrap = document.createElement("div");
+  wrap.className = "tlWrap";
+
+  const controls = document.createElement("div");
+  controls.className = "tlControls";
+  controls.innerHTML = `
+    <div class="range">
+      <strong>Playback</strong>
+      <button class="btn" id="tlPlay">Play</button>
+      <button class="btn" id="tlPause">Pause</button>
+      <span style="opacity:.75">Reveal</span>
+      <input type="range" id="tlRange" min="0" max="100" value="${Math.round(state.timelineCursor*100)}" />
+      <span id="tlPct" style="opacity:.85">${Math.round(state.timelineCursor*100)}%</span>
+    </div>
+    <div style="color:rgba(232,238,252,.65); font-size:12px">${nodes.length} milestones</div>
+  `;
+
+  const canvas = document.createElement("div");
+  canvas.className = "tlCanvas";
+  canvas.innerHTML = `<div class="tlLine"></div>`;
+
+  const nodeEls = [];
+  for(const n of nodes){
+    const t = n.t;
+    const el = document.createElement("div");
+    el.className = `node ${severityColor(t.status)}`;
+    el.innerHTML = `
+      <div class="bullet" aria-hidden="true"></div>
+      <div class="box">
+        <div class="top">
+          <div>
+            <div class="name">${t.id} • ${t.name}</div>
+            <div class="meta2">${t.owner} • <strong>${statusLabel(t.status)}</strong> • ${t.percent||0}%</div>
+          </div>
+          <div class="when">${n.when}</div>
+        </div>
+      </div>
+    `;
+    el.addEventListener("click", ()=>openModal(t));
+    canvas.appendChild(el);
+    nodeEls.push(el);
+  }
+
+  wrap.appendChild(controls);
+  wrap.appendChild(canvas);
+  host.appendChild(wrap);
+
+  const applyReveal = (cursor01) => {
+    state.timelineCursor = clamp(cursor01, 0, 1);
+    const revealCount = Math.floor(state.timelineCursor * nodeEls.length + 0.0001);
+    nodeEls.forEach((el, i)=> el.classList.toggle("show", i < revealCount));
+    $("#tlPct").textContent = `${Math.round(state.timelineCursor*100)}%`;
+    $("#tlRange").value = String(Math.round(state.timelineCursor*100));
+  };
+
+  // initial
+  applyReveal(state.timelineCursor || 0);
+
+  $("#tlRange").oninput = (e)=> applyReveal(Number(e.target.value)/100);
+
+  const play = () => {
+    cancelAnimationFrame(timelineRAF);
+    const start = performance.now();
+    const from = state.timelineCursor || 0;
+    const duration = 1600;
+    const step = (now) => {
+      const t = clamp((now - start)/duration, 0, 1);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1-t, 3);
+      applyReveal(from + (1-from)*eased);
+      if(t < 1) timelineRAF = requestAnimationFrame(step);
+    };
+    timelineRAF = requestAnimationFrame(step);
+  };
+  const pause = () => { cancelAnimationFrame(timelineRAF); timelineRAF = null; };
+
+  $("#tlPlay").onclick = play;
+  $("#tlPause").onclick = pause;
+}
+
+function renderAll(tasks){
+  renderKPIs(tasks);
+  renderGantt(tasks);
+  renderCards(tasks);
+  renderList(tasks);
+  renderCalendar(tasks);
+  renderTimeline(tasks);
+}
+
+function render(){
+  const filters = {q: state.q, status: state.status, owner: state.owner};
+  const filtered = PROJECT.tasks.filter(t=>matchesFilter(t, filters));
+  // sort by start date for consistency
+  filtered.sort((a,b)=>toDate(a.start)-toDate(b.start));
+  renderAll(filtered);
+}
+
+/** =========================
+ *  Toolbar + tabs + download
+ *  ========================= */
+function initOwners(){
+  const owners = [...new Set(PROJECT.tasks.map(t=>t.owner))].sort((a,b)=>a.localeCompare(b));
+  const sel = $("#owner");
+  sel.innerHTML = `<option value="all">All</option>` + owners.map(o=>`<option value="${o}">${o}</option>`).join("");
+}
+
+$("#q").addEventListener("input", (e)=>{ state.q = e.target.value.trim(); render(); });
+$("#status").addEventListener("change", (e)=>{ state.status = e.target.value; render(); });
+$("#owner").addEventListener("change", (e)=>{ state.owner = e.target.value; render(); });
+
+$("#resetBtn").addEventListener("click", ()=>{
+  state.q=""; state.status="all"; state.owner="all";
+  $("#q").value=""; $("#status").value="all"; $("#owner").value="all";
+  render();
+});
+
+$("#tabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest(".tab");
+  if(!btn) return;
+  setView(btn.dataset.view);
+});
+
+function downloadStandaloneHTML(){
+  // Save current DOM as standalone HTML (this file is already standalone; we include live state in a small script block)
+  const stateSnippet = `
+<script>
+  // Restored view/filter state
+  try{
+    const restored = ${JSON.stringify({
+      view: state.view, q: state.q, status: state.status, owner: state.owner,
+      calendarMonth: state.calendarMonth ? state.calendarMonth.toISOString() : null,
+      timelineCursor: state.timelineCursor
+    })};
+    window.__RESTORED_STATE__ = restored;
+  }catch(e){}
+<\/script>`;
+  const html = "<!DOCTYPE html>\\n" + document.documentElement.outerHTML.replace("</head>", stateSnippet + "\\n</head>");
+  const blob = new Blob([html], {type:"text/html;charset=utf-8"});
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+  a.href = URL.createObjectURL(blob);
+  a.download = `project-timeline-dashboard-${ts}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
+}
+$("#downloadBtn").addEventListener("click", downloadStandaloneHTML);
+
+// Restore state if present (from downloaded file)
+(function restore(){
+  if(window.__RESTORED_STATE__){
+    const s = window.__RESTORED_STATE__;
+    state.view = s.view || state.view;
+    state.q = s.q || "";
+    state.status = s.status || "all";
+    state.owner = s.owner || "all";
+    state.timelineCursor = typeof s.timelineCursor==="number" ? s.timelineCursor : 0;
+    if(s.calendarMonth){
+      const d = new Date(s.calendarMonth);
+      state.calendarMonth = new Date(d.getFullYear(), d.getMonth(), 1, 12);
+    }
+    // update inputs
+    $("#q").value = state.q;
+    $("#status").value = state.status;
+    $("#owner").value = state.owner;
+    setView(state.view);
+  }
+})();
+
+/** =========================
+ *  Boot
+ *  ========================= */
+initOwners();
+render();
+</script>
+</body>
+</html>

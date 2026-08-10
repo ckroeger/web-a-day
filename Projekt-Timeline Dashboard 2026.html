@@ -1,0 +1,812 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekt Timeline Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0f; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        
+        .glow-cyan { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.1); }
+        .glow-magenta { box-shadow: 0 0 20px rgba(255, 0, 255, 0.3), 0 0 40px rgba(255, 0, 255, 0.1); }
+        .glow-violet { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1); }
+        .glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 0 40px rgba(245, 158, 11, 0.1); }
+        
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+            50% { opacity: 0.6; box-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor; }
+        }
+        
+        @keyframes float-particle {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+        
+        .pulse-today {
+            animation: pulse-glow 2s ease-in-out infinite;
+            color: #00ffff;
+        }
+        
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-particle linear infinite;
+        }
+        
+        .nav-active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+        
+        .view-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .view-container.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bg-grid {
+            background-image: 
+                linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        
+        @keyframes grow-bar {
+            from { transform: scaleX(0); }
+            to { transform: scaleX(1); }
+        }
+        
+        .bar-grow {
+            transform-origin: left;
+            animation: grow-bar 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        @keyframes trail-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .trail-effect {
+            animation: trail-glow 0.5s ease-in-out infinite;
+        }
+        
+        .tooltip-popup {
+            position: absolute;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .tooltip-popup.show {
+            opacity: 1;
+        }
+        
+        .calendar-day:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        
+        .calendar-day {
+            transition: transform 0.2s;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden bg-grid">
+    <!-- Particles Background -->
+    <div id="particles" class="fixed inset-0 pointer-events-none z-0"></div>
+    
+    <!-- Background Gradient -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 w-96 h-96 bg-pink-600/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 py-6">
+        <!-- Header -->
+        <header class="glass-strong rounded-2xl p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold gradient-text">Projekt Timeline Dashboard</h1>
+                    <p class="text-gray-400 mt-1 text-sm">April 2026 – August 2026 · Heute: 10.08.2026</p>
+                </div>
+                <button id="downloadBtn" onclick="downloadHTML()" class="glass flex items-center gap-2 px-5 py-2.5 rounded-xl hover:bg-white/10 transition-all duration-300 border border-violet-500/30 hover:border-violet-500/60 text-sm font-medium">
+                    <span>⬇</span> Download HTML
+                </button>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex flex-wrap gap-2 mt-6">
+                <button onclick="switchView('gantt')" data-view="gantt" class="nav-btn nav-active px-4 py-2 rounded-xl glass text-sm font-medium transition-all duration-300 hover:bg-white/10">Gantt</button>
+                <button onclick="switchView('cards')" data-view="cards" class="nav-btn px-4 py-2 rounded-xl glass text-sm font-medium transition-all duration-300 hover:bg-white/10">Karten</button>
+                <button onclick="switchView('list')" data-view="list" class="nav-btn px-4 py-2 rounded-xl glass text-sm font-medium transition-all duration-300 hover:bg-white/10">Liste</button>
+                <button onclick="switchView('calendar')" data-view="calendar" class="nav-btn px-4 py-2 rounded-xl glass text-sm font-medium transition-all duration-300 hover:bg-white/10">Kalender</button>
+                <button onclick="switchView('timeline')" data-view="timeline" class="nav-btn px-4 py-2 rounded-xl glass text-sm font-medium transition-all duration-300 hover:bg-white/10">Timeline</button>
+            </nav>
+        </header>
+
+        <!-- Views Container -->
+        <main id="views-container">
+            <!-- Gantt View -->
+            <div id="view-gantt" class="view-container active">
+                <div class="glass-strong rounded-2xl p-6 overflow-x-auto">
+                    <h2 class="text-xl font-bold mb-6 text-white/90">Gantt-Diagramm</h2>
+                    <div id="gantt-chart" class="min-w-[800px]"></div>
+                </div>
+            </div>
+
+            <!-- Cards View -->
+            <div id="view-cards" class="view-container hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="cards-container"></div>
+            </div>
+
+            <!-- List View -->
+            <div id="view-list" class="view-container hidden">
+                <div class="glass-strong rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-6 text-white/90">Projektliste</h2>
+                    <div id="list-container" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="view-calendar" class="view-container hidden">
+                <div class="glass-strong rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-6 text-white/90">Kalenderansicht</h2>
+                    <div id="calendar-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+            </div>
+
+            <!-- Timeline Playback View -->
+            <div id="view-timeline" class="view-container hidden">
+                <div class="glass-strong rounded-2xl p-6">
+                    <h2 class="text-xl font-bold mb-4 text-white/90">Animierte Timeline</h2>
+                    <!-- Controls -->
+                    <div class="flex flex-wrap items-center gap-3 mb-6">
+                        <button onclick="timelinePlay()" id="btn-play" class="glass px-4 py-2 rounded-lg text-sm hover:bg-white/10 transition-all border border-green-500/30">▶ Play</button>
+                        <button onclick="timelinePause()" id="btn-pause" class="glass px-4 py-2 rounded-lg text-sm hover:bg-white/10 transition-all border border-yellow-500/30">⏸ Pause</button>
+                        <button onclick="timelineReset()" id="btn-reset" class="glass px-4 py-2 rounded-lg text-sm hover:bg-white/10 transition-all border border-red-500/30">⏹ Reset</button>
+                        <div class="glass px-3 py-2 rounded-lg flex items-center gap-2">
+                            <span class="text-xs text-gray-400">Geschwindigkeit:</span>
+                            <button onclick="setSpeed(1)" class="speed-btn text-xs px-2 py-1 rounded bg-violet-500/30 border border-violet-500/50">1x</button>
+                            <button onclick="setSpeed(2)" class="speed-btn text-xs px-2 py-1 rounded hover:bg-violet-500/30 border border-transparent">2x</button>
+                            <button onclick="setSpeed(4)" class="speed-btn text-xs px-2 py-1 rounded hover:bg-violet-500/30 border border-transparent">4x</button>
+                        </div>
+                        <span id="timeline-date" class="text-sm text-cyan-400 font-mono ml-auto">01.04.2026</span>
+                    </div>
+                    <div id="timeline-playback" class="min-w-[700px]"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tooltip Element -->
+    <div id="global-tooltip" class="tooltip-popup glass-strong rounded-xl p-4 max-w-xs"></div>
+
+    <script>
+        // Project Data
+        const projects = [
+            {
+                id: 1,
+                name: "Opportunity HUB goes ARENA HUB",
+                start: new Date(2026, 6, 14), // 14.07.2026
+                end: new Date(2026, 7, 10),   // 10.08.2026
+                ongoing: true,
+                themes: ["Agentic SDLC – Claude", "Setup Brownfield", "Vorgehensmodell"],
+                team: ["Tobias Torkler", "Michael Umov"],
+                color: "cyan",
+                colorHex: "#06b6d4",
+                colorBg: "rgba(6, 182, 212, 0.2)",
+                colorBorder: "rgba(6, 182, 212, 0.5)",
+                glowClass: "glow-cyan"
+            },
+            {
+                id: 2,
+                name: "ARENA Hub reloaded",
+                start: new Date(2026, 6, 6),  // 06.07.2026
+                end: new Date(2026, 7, 10),   // 10.08.2026
+                ongoing: true,
+                themes: ["Agentic SDLC – Claude", "GitOps"],
+                team: ["Thomas Fritsche (PO)", "Dominik Jacob", "Joey Rösner", "Jessy Osei", "Sascha Dederer"],
+                color: "magenta",
+                colorHex: "#ec4899",
+                colorBg: "rgba(236, 72, 153, 0.2)",
+                colorBorder: "rgba(236, 72, 153, 0.5)",
+                glowClass: "glow-magenta"
+            },
+            {
+                id: 3,
+                name: "Opportunity Hub",
+                start: new Date(2026, 4, 27), // 27.05.2026
+                end: new Date(2026, 7, 10),   // 10.08.2026
+                ongoing: true,
+                themes: ["Agentic SDLC – Claude", "GitOps", "Hop-on / Hop-off"],
+                team: ["Sören Wohlers (PO)", "Jan Prien", "Sebastian Frick", "Alexis Cerna", "Sulan Abubakarov", "Florian Hagen", "Thomas Fritsche"],
+                color: "violet",
+                colorHex: "#8b5cf6",
+                colorBg: "rgba(139, 92, 246, 0.2)",
+                colorBorder: "rgba(139, 92, 246, 0.5)",
+                glowClass: "glow-violet"
+            },
+            {
+                id: 4,
+                name: "ARENA Hub",
+                start: new Date(2026, 3, 7),  // 07.04.2026
+                end: new Date(2026, 3, 30),   // 30.04.2026
+                ongoing: false,
+                themes: ["Klassische Webapp – Frontend: Angular, Backend: Spring Boot"],
+                team: ["Thorsten Rodenhäuser (PO)", "Max Semdner", "Florian Hagen", "Jan Prien", "Sascha Dederer", "Mohamed Mukhtar"],
+                color: "amber",
+                colorHex: "#f59e0b",
+                colorBg: "rgba(245, 158, 11, 0.2)",
+                colorBorder: "rgba(245, 158, 11, 0.5)",
+                glowClass: "glow-amber"
+            }
+        ];
+
+        const today = new Date(2026, 7, 10); // 10.08.2026
+        const timelineStart = new Date(2026, 3, 1); // 01.04.2026
+        const timelineEnd = new Date(2026, 7, 31);  // 31.08.2026
+        const totalDays = (timelineEnd - timelineStart) / (1000 * 60 * 60 * 24);
+
+        // Utility Functions
+        function formatDate(date) {
+            return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+        }
+
+        function getDayPosition(date) {
+            const days = (date - timelineStart) / (1000 * 60 * 60 * 24);
+            return (days / totalDays) * 100;
+        }
+
+        function getMonthName(month) {
+            const names = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+            return names[month];
+        }
+
+        // Particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                const colors = ['rgba(139, 92, 246, 0.4)', 'rgba(236, 72, 153, 0.4)', 'rgba(6, 182, 212, 0.4)'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.width = (1 + Math.random() * 3) + 'px';
+                particle.style.height = particle.style.width;
+                container.appendChild(particle);
+            }
+        }
+
+        // View Switching
+        let currentView = 'gantt';
+        function switchView(view) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active'));
+            document.querySelector(`[data-view="${view}"]`).classList.add('nav-active');
+            
+            document.querySelectorAll('.view-container').forEach(v => {
+                v.classList.remove('active');
+                v.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(`view-${view}`);
+            target.classList.remove('hidden');
+            setTimeout(() => target.classList.add('active'), 50);
+            
+            currentView = view;
+            
+            if (view === 'timeline') {
+                timelineReset();
+            }
+        }
+
+        // ====== GANTT VIEW ======
+        function renderGantt() {
+            const container = document.getElementById('gantt-chart');
+            const months = [
+                { name: 'Apr', start: new Date(2026, 3, 1) },
+                { name: 'Mai', start: new Date(2026, 4, 1) },
+                { name: 'Jun', start: new Date(2026, 5, 1) },
+                { name: 'Jul', start: new Date(2026, 6, 1) },
+                { name: 'Aug', start: new Date(2026, 7, 1) }
+            ];
+
+            let html = '<div class="relative">';
+            
+            // Month headers
+            html += '<div class="flex mb-2 ml-64 relative h-8">';
+            months.forEach((m, i) => {
+                const left = getDayPosition(m.start);
+                const nextMonth = i < months.length - 1 ? getDayPosition(months[i+1].start) : 100;
+                const width = nextMonth - left;
+                html += `<div class="absolute text-xs text-gray-400 font-medium border-l border-white/10 pl-2 h-full flex items-center" style="left:${left}%;width:${width}%">${m.name} 2026</div>`;
+            });
+            html += '</div>';
+
+            // Grid lines
+            html += '<div class="relative ml-64">';
+            months.forEach(m => {
+                const left = getDayPosition(m.start);
+                html += `<div class="absolute top-0 bottom-0 border-l border-white/5" style="left:${left}%;height:${projects.length * 70 + 20}px"></div>`;
+            });
+
+            // Today line
+            const todayPos = getDayPosition(today);
+            html += `<div class="absolute top-0 pulse-today" style="left:${todayPos}%;height:${projects.length * 70 + 20}px;width:2px;background:cyan;border-radius:1px;"></div>`;
+            html += `<div class="absolute text-xs text-cyan-400 font-bold" style="left:${todayPos}%;top:-25px;transform:translateX(-50%)">Heute</div>`;
+            html += '</div>';
+
+            // Bars
+            html += '<div class="relative">';
+            projects.forEach((project, idx) => {
+                const barStart = getDayPosition(project.start);
+                const barEnd = getDayPosition(project.end);
+                const barWidth = barEnd - barStart;
+                
+                html += `<div class="flex items-center h-14 mb-2 group">`;
+                // Label
+                html += `<div class="w-64 pr-4 flex-shrink-0">
+                    <span class="text-sm font-medium text-white/80 truncate block">${project.name}</span>
+                    <span class="text-xs text-gray-500">${formatDate(project.start)} – ${project.ongoing ? 'heute' : formatDate(project.end)}</span>
+                </div>`;
+                
+                // Bar area
+                html += `<div class="flex-1 relative h-10">`;
+                
+                // Month grid lines behind bar
+                months.forEach(m => {
+                    const left = getDayPosition(m.start);
+                    html += `<div class="absolute top-0 bottom-0 border-l border-white/5" style="left:${left}%"></div>`;
+                });
+                
+                // Today line
+                html += `<div class="absolute top-0 bottom-0 pulse-today" style="left:${todayPos}%;width:2px;background:cyan;"></div>`;
+                
+                // Bar
+                if (project.ongoing) {
+                    html += `<div class="absolute top-1 bottom-1 rounded-l-lg cursor-pointer transition-all duration-300 hover:scale-y-110 gantt-bar" 
+                        data-project="${idx}"
+                        style="left:${barStart}%;width:${barWidth}%;background:linear-gradient(90deg, ${project.colorHex}40, ${project.colorHex}80, ${project.colorHex}20);border:1px solid ${project.colorBorder};border-right:none;">
+                        <div class="absolute right-0 top-0 bottom-0 w-8" style="background:linear-gradient(90deg, transparent, ${project.colorHex}60);"></div>
+                        <div class="absolute right-[-8px] top-1/2 -translate-y-1/2 text-lg" style="color:${project.colorHex}">▸</div>
+                        <span class="text-xs font-medium px-2 py-1 text-white/90 whitespace-nowrap overflow-hidden">${project.name}</span>
+                    </div>`;
+                } else {
+                    html += `<div class="absolute top-1 bottom-1 rounded-lg cursor-pointer transition-all duration-300 hover:scale-y-110 gantt-bar" 
+                        data-project="${idx}"
+                        style="left:${barStart}%;width:${barWidth}%;background:linear-gradient(90deg, ${project.colorHex}40, ${project.colorHex}60);border:1px solid ${project.colorBorder};">
+                        <span class="text-xs font-medium px-2 py-1 text-white/90 whitespace-nowrap overflow-hidden">${project.name}</span>
+                        <span class="absolute -right-1 -top-1 text-[10px] bg-green-500/80 text-white px-1.5 py-0.5 rounded-full font-medium">Abgeschlossen</span>
+                    </div>`;
+                }
+                
+                html += '</div></div>';
+            });
+            html += '</div></div>';
+
+            container.innerHTML = html;
+
+            // Tooltips for gantt bars
+            document.querySelectorAll('.gantt-bar').forEach(bar => {
+                bar.addEventListener('mouseenter', (e) => {
+                    const idx = parseInt(bar.dataset.project);
+                    const p = projects[idx];
+                    showTooltip(e, `
+                        <div class="font-bold text-sm mb-2" style="color:${p.colorHex}">${p.name}</div>
+                        <div class="text-xs text-gray-300 mb-2">${formatDate(p.start)} – ${p.ongoing ? 'heute (laufend)' : formatDate(p.end) + ' (abgeschlossen)'}</div>
+                        <div class="text-xs text-gray-400 mb-1"><strong>Themen:</strong> ${p.themes.join(', ')}</div>
+                        <div class="text-xs text-gray-400"><strong>Team:</strong> ${p.team.join(', ')}</div>
+                    `);
+                });
+                bar.addEventListener('mouseleave', hideTooltip);
+                bar.addEventListener('mousemove', moveTooltip);
+            });
+        }
+
+        // ====== CARDS VIEW ======
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            let html = '';
+            
+            projects.forEach(project => {
+                html += `<div class="glass-strong rounded-2xl p-6 transition-all duration-500 hover:scale-[1.02] ${project.glowClass}" style="border-color:${project.colorBorder}">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-lg font-bold" style="color:${project.colorHex}">${project.name}</h3>
+                        <span class="text-xs px-2 py-1 rounded-full font-medium ${project.ongoing ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'}">
+                            ${project.ongoing ? '● Laufend' : '✓ Abgeschlossen'}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">
+                        <span class="text-gray-500">Zeitraum:</span> ${formatDate(project.start)} – ${project.ongoing ? 'heute' : formatDate(project.end)}
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        ${project.themes.map(t => `<span class="text-xs px-2 py-1 rounded-lg" style="background:${project.colorBg};color:${project.colorHex};border:1px solid ${project.colorBorder}">${t}</span>`).join('')}
+                    </div>
+                    <div class="border-t border-white/5 pt-4">
+                        <p class="text-xs text-gray-500 mb-2">Team (${project.team.length})</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${project.team.map(t => `<span class="text-xs text-gray-300 bg-white/5 px-2 py-0.5 rounded">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ====== LIST VIEW ======
+        function renderList() {
+            const container = document.getElementById('list-container');
+            let html = '';
+            
+            projects.forEach(project => {
+                html += `<div class="glass rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300 hover:bg-white/5" style="border-left:3px solid ${project.colorHex}">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3">
+                            <h3 class="font-semibold text-sm text-white/90 truncate">${project.name}</h3>
+                            <span class="flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium ${project.ongoing ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}">
+                                ${project.ongoing ? 'Laufend' : 'Abgeschlossen'}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">${project.themes.join(' · ')}</p>
+                    </div>
+                    <div class="text-xs text-gray-400 flex-shrink-0 font-mono">
+                        ${formatDate(project.start)} – ${project.ongoing ? 'heute' : formatDate(project.end)}
+                    </div>
+                    <div class="text-xs text-gray-500 flex-shrink-0">
+                        👥 ${project.team.length} Mitglieder
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // ====== CALENDAR VIEW ======
+        function renderCalendar() {
+            const container = document.getElementById('calendar-container');
+            let html = '';
+            
+            const monthsToShow = [
+                { month: 3, year: 2026 }, // April
+                { month: 4, year: 2026 }, // Mai
+                { month: 5, year: 2026 }, // Juni
+                { month: 6, year: 2026 }, // Juli
+                { month: 7, year: 2026 }, // August
+            ];
+            
+            const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+            
+            monthsToShow.forEach(({ month, year }) => {
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const startDayOfWeek = (firstDay.getDay() + 6) % 7; // Monday = 0
+                
+                html += `<div class="glass rounded-xl p-4">
+                    <h3 class="text-sm font-bold text-white/80 mb-3">${getMonthName(month)} ${year}</h3>
+                    <div class="grid grid-cols-7 gap-1">`;
+                
+                // Week day headers
+                weekDays.forEach(d => {
+                    html += `<div class="text-[10px] text-gray-500 text-center font-medium pb-1">${d}</div>`;
+                });
+                
+                // Empty cells before first day
+                for (let i = 0; i < startDayOfWeek; i++) {
+                    html += '<div></div>';
+                }
+                
+                // Days
+                for (let day = 1; day <= lastDay.getDate(); day++) {
+                    const date = new Date(year, month, day);
+                    const isToday = date.getTime() === today.getTime();
+                    const activeProjects = projects.filter(p => date >= p.start && date <= p.end);
+                    
+                    let dayClasses = 'calendar-day relative rounded-md text-center text-[11px] h-8 flex flex-col items-center justify-center cursor-pointer ';
+                    let dayStyles = '';
+                    
+                    if (isToday) {
+                        dayClasses += 'ring-2 ring-cyan-400 bg-cyan-500/20 font-bold text-cyan-300 ';
+                        dayStyles = 'box-shadow: 0 0 10px rgba(0,255,255,0.5);';
+                    } else if (activeProjects.length > 0) {
+                        dayClasses += 'text-white/90 ';
+                    } else {
+                        dayClasses += 'text-gray-600 ';
+                    }
+                    
+                    html += `<div class="${dayClasses}" style="${dayStyles}" data-date="${year}-${month}-${day}" onmouseenter="showCalendarTooltip(event, ${year}, ${month}, ${day})" onmouseleave="hideTooltip()">
+                        <span>${day}</span>`;
+                    
+                    if (activeProjects.length > 0) {
+                        html += '<div class="flex gap-px mt-0.5">';
+                        activeProjects.forEach(p => {
+                            html += `<div class="w-1.5 h-1.5 rounded-full" style="background:${p.colorHex}"></div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += '</div>';
+                }
+                
+                html += '</div></div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function showCalendarTooltip(event, year, month, day) {
+            const date = new Date(year, month, day);
+            const activeProjects = projects.filter(p => date >= p.start && date <= p.end);
+            
+            if (activeProjects.length === 0) return;
+            
+            let content = `<div class="text-xs font-bold text-white/80 mb-2">${formatDate(date)}</div>`;
+            activeProjects.forEach(p => {
+                content += `<div class="mb-2 border-l-2 pl-2" style="border-color:${p.colorHex}">
+                    <div class="text-xs font-semibold" style="color:${p.colorHex}">${p.name}</div>
+                    <div class="text-[10px] text-gray-400">${p.themes.join(', ')}</div>
+                    <div class="text-[10px] text-gray-500">${p.team.join(', ')}</div>
+                </div>`;
+            });
+            
+            showTooltip(event, content);
+        }
+
+        // ====== TIMELINE PLAYBACK VIEW ======
+        let timelineAnimationId = null;
+        let timelineCurrentDate = new Date(timelineStart);
+        let timelineSpeed = 1;
+        let timelinePlaying = false;
+        let timelineLastFrame = null;
+
+        function renderTimelinePlayback() {
+            const container = document.getElementById('timeline-playback');
+            const months = [
+                { name: 'Apr', start: new Date(2026, 3, 1) },
+                { name: 'Mai', start: new Date(2026, 4, 1) },
+                { name: 'Jun', start: new Date(2026, 5, 1) },
+                { name: 'Jul', start: new Date(2026, 6, 1) },
+                { name: 'Aug', start: new Date(2026, 7, 1) }
+            ];
+
+            let html = '<div class="relative">';
+            
+            // Month headers
+            html += '<div class="flex mb-2 ml-56 relative h-6">';
+            months.forEach((m, i) => {
+                const left = getDayPosition(m.start);
+                html += `<div class="absolute text-xs text-gray-500" style="left:${left}%">${m.name}</div>`;
+            });
+            html += '</div>';
+
+            // Progress track
+            html += '<div class="relative ml-56 h-2 rounded bg-white/5 mb-6">';
+            html += `<div id="timeline-progress" class="absolute top-0 left-0 h-full rounded bg-gradient-to-r from-violet-500 via-pink-500 to-cyan-500 transition-none" style="width:0%"></div>`;
+            html += `<div id="timeline-cursor" class="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-cyan-400 pulse-today" style="left:0%;margin-left:-8px;"></div>`;
+            // Today marker
+            const todayPos = getDayPosition(today);
+            html += `<div class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-cyan-600 border border-cyan-400 pulse-today" style="left:${todayPos}%;margin-left:-6px;" title="Heute"></div>`;
+            html += '</div>';
+
+            // Project lanes
+            projects.forEach((project, idx) => {
+                html += `<div class="flex items-center h-16 mb-2">`;
+                html += `<div class="w-56 pr-4 flex-shrink-0">
+                    <span class="text-xs font-medium text-white/70">${project.name}</span>
+                </div>`;
+                html += `<div class="flex-1 relative h-10 rounded-lg bg-white/3">`;
+                
+                // Bar
+                const barStart = getDayPosition(project.start);
+                const barEnd = getDayPosition(project.end);
+                const barWidth = barEnd - barStart;
+                
+                html += `<div id="timeline-bar-${idx}" class="absolute top-1 bottom-1 rounded-lg overflow-hidden" style="left:${barStart}%;width:${barWidth}%;transform:scaleX(0);transform-origin:left;background:linear-gradient(90deg, ${project.colorHex}60, ${project.colorHex}30);border:1px solid ${project.colorBorder};">
+                    <div id="timeline-trail-${idx}" class="absolute right-0 top-0 bottom-0 w-4 trail-effect" style="background:linear-gradient(90deg, transparent, ${project.colorHex});display:none;"></div>
+                </div>`;
+                
+                // Callout
+                html += `<div id="timeline-callout-${idx}" class="absolute -top-8 text-[10px] px-2 py-1 rounded glass" style="display:none;left:${barStart}%;color:${project.colorHex}">${project.name}</div>`;
+                
+                html += '</div></div>';
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function timelinePlay() {
+            if (timelinePlaying) return;
+            timelinePlaying = true;
+            timelineLastFrame = performance.now();
+            timelineAnimationId = requestAnimationFrame(timelineStep);
+        }
+
+        function timelinePause() {
+            timelinePlaying = false;
+            if (timelineAnimationId) {
+                cancelAnimationFrame(timelineAnimationId);
+                timelineAnimationId = null;
+            }
+        }
+
+        function timelineReset() {
+            timelinePause();
+            timelineCurrentDate = new Date(timelineStart);
+            updateTimelineDisplay();
+            renderTimelinePlayback();
+        }
+
+        function setSpeed(speed) {
+            timelineSpeed = speed;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('bg-violet-500/30', 'border-violet-500/50');
+                btn.classList.add('border-transparent');
+            });
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                if (btn.textContent.trim() === speed + 'x') {
+                    btn.classList.add('bg-violet-500/30', 'border-violet-500/50');
+                    btn.classList.remove('border-transparent');
+                }
+            });
+        }
+
+        function timelineStep(timestamp) {
+            if (!timelinePlaying) return;
+            
+            const delta = timestamp - timelineLastFrame;
+            timelineLastFrame = timestamp;
+            
+            // Move 1 day per 100ms at 1x speed
+            const daysToAdvance = (delta / 100) * timelineSpeed;
+            timelineCurrentDate = new Date(timelineCurrentDate.getTime() + daysToAdvance * 24 * 60 * 60 * 1000);
+            
+            if (timelineCurrentDate >= today) {
+                timelineCurrentDate = new Date(today);
+                updateTimelineDisplay();
+                timelinePause();
+                return;
+            }
+            
+            updateTimelineDisplay();
+            timelineAnimationId = requestAnimationFrame(timelineStep);
+        }
+
+        function updateTimelineDisplay() {
+            const progress = getDayPosition(timelineCurrentDate);
+            
+            const progressBar = document.getElementById('timeline-progress');
+            const cursor = document.getElementById('timeline-cursor');
+            const dateLabel = document.getElementById('timeline-date');
+            
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (cursor) cursor.style.left = progress + '%';
+            if (dateLabel) dateLabel.textContent = formatDate(timelineCurrentDate);
+            
+            // Update bars
+            projects.forEach((project, idx) => {
+                const bar = document.getElementById(`timeline-bar-${idx}`);
+                const trail = document.getElementById(`timeline-trail-${idx}`);
+                const callout = document.getElementById(`timeline-callout-${idx}`);
+                
+                if (!bar) return;
+                
+                if (timelineCurrentDate >= project.start) {
+                    const elapsed = (timelineCurrentDate - project.start) / (project.end - project.start);
+                    const scale = Math.min(elapsed, 1);
+                    bar.style.transform = `scaleX(${scale})`;
+                    
+                    if (trail && scale < 1) {
+                        trail.style.display = 'block';
+                    } else if (trail) {
+                        trail.style.display = 'none';
+                    }
+                    
+                    if (callout && scale > 0 && scale < 0.3) {
+                        callout.style.display = 'block';
+                    } else if (callout) {
+                        callout.style.display = 'none';
+                    }
+                } else {
+                    bar.style.transform = 'scaleX(0)';
+                    if (trail) trail.style.display = 'none';
+                    if (callout) callout.style.display = 'none';
+                }
+            });
+        }
+
+        // ====== TOOLTIP ======
+        function showTooltip(event, content) {
+            const tooltip = document.getElementById('global-tooltip');
+            tooltip.innerHTML = content;
+            tooltip.classList.add('show');
+            moveTooltip(event);
+        }
+
+        function moveTooltip(event) {
+            const tooltip = document.getElementById('global-tooltip');
+            const x = event.clientX + 15;
+            const y = event.clientY + 15;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+            tooltip.style.position = 'fixed';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('global-tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        // ====== DOWNLOAD ======
+        function downloadHTML() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob(['<!DOCTYPE html>\n<html>' + document.documentElement.innerHTML + '</html>'], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'projekt-timeline-dashboard.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ====== INIT ======
+        function init() {
+            createParticles();
+            renderGantt();
+            renderCards();
+            renderList();
+            renderCalendar();
+            renderTimelinePlayback();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

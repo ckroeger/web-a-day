@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARENA & Opportunity HUB Dashboard 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --bg-card: rgba(18, 26, 43, 0.65);
+            --bg-card-hover: rgba(28, 39, 64, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            /* Color Palette for Projects */
+            --color-p1: #ec4899; /* Pink/Magenta */
+            --color-p1-glow: rgba(236, 72, 153, 0.4);
+            --color-p2: #8b5cf6; /* Purple/Violet */
+            --color-p2-glow: rgba(139, 92, 246, 0.4);
+            --color-p3: #06b6d4; /* Cyan */
+            --color-p3-glow: rgba(6, 182, 212, 0.4);
+            --color-p4: #10b981; /* Emerald/Green */
+            --color-p4-glow: rgba(16, 185, 129, 0.4);
+
+            --accent-glow: rgba(139, 92, 246, 0.25);
+            --today-marker: #f43f5e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 90% 20%, rgba(236, 72, 153, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 80%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* HEADER & NAVIGATION */
+        header {
+            background: rgba(10, 15, 29, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0.85rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        nav {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glass);
+            gap: 4px;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.8));
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-download {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-download:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* MAIN LAYOUT */
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .view-panel {
+            display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* GLASS CARD UTILITY */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* TAGS & BADGES */
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+        }
+
+        .badge-status {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .badge-completed {
+            background: rgba(148, 163, 184, 0.15);
+            color: #cbd5e1;
+            border: 1px solid rgba(203, 213, 225, 0.3);
+        }
+
+        /* 1. GANTT VIEW */
+        .gantt-container {
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .gantt-header {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .gantt-months-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .gantt-body {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .gantt-bg-grid {
+            position: absolute;
+            top: 0;
+            left: 280px;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            pointer-events: none;
+        }
+
+        .gantt-grid-col {
+            border-left: 1px dashed rgba(255, 255, 255, 0.05);
+            height: 100%;
+        }
+
+        .gantt-grid-col:last-child {
+            border-right: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+
+        .gantt-row {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .gantt-project-info {
+            padding-right: 1.5rem;
+        }
+
+        .gantt-project-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .gantt-project-dates {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .gantt-track-area {
+            position: relative;
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .gantt-bar {
+            position: absolute;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .gantt-bar:hover {
+            transform: translateY(-2px) scale(1.01);
+            filter: brightness(1.15);
+            z-index: 10;
+        }
+
+        .gantt-bar.ongoing {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            mask-image: linear-gradient(to right, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+        }
+
+        .gantt-bar.ongoing::after {
+            content: '►';
+            position: absolute;
+            right: 4px;
+            font-size: 0.7rem;
+            opacity: 0.8;
+            animation: pulseArrow 1.5s infinite alternate;
+        }
+
+        @keyframes pulseArrow {
+            from { transform: translateX(0); opacity: 0.4; }
+            to { transform: translateX(3px); opacity: 1; }
+        }
+
+        .gantt-today-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--today-marker);
+            box-shadow: 0 0 12px var(--today-marker);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .gantt-today-badge {
+            position: absolute;
+            top: -28px;
+            transform: translateX(-50%);
+            background: var(--today-marker);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(244, 63, 94, 0.5);
+        }
+
+        /* 2. CARD VIEW */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-accent-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .card-dates {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .card-section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+        }
+
+        .card-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-team {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .team-member.po {
+            border-color: rgba(236, 72, 153, 0.4);
+            background: rgba(236, 72, 153, 0.1);
+            font-weight: 600;
+        }
+
+        /* 3. COMPACT LIST VIEW */
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .list-item {
+            display: grid;
+            grid-template-columns: 8px 1.5fr 1.2fr 2fr 1.5fr 100px;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .list-item:hover {
+            background: var(--bg-card-hover);
+            transform: translateX(4px);
+        }
+
+        .list-color-indicator {
+            width: 8px;
+            height: 36px;
+            border-radius: 4px;
+        }
+
+        .list-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .list-dates {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .list-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .list-team {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 4. CALENDAR VIEW */
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .month-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .month-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .month-btn.active, .month-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+            color: white;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .cal-day-header {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 0.5rem 0;
+            text-transform: uppercase;
+        }
+
+        .cal-day-cell {
+            min-height: 100px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .cal-day-cell:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .cal-day-cell.other-month {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .cal-day-cell.is-today {
+            border: 2px solid var(--today-marker);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+            background: rgba(244, 63, 94, 0.05);
+        }
+
+        .cal-day-num {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .cal-day-cell.is-today .cal-day-num {
+            color: var(--today-marker);
+        }
+
+        .cal-events-container {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .cal-event-bar {
+            height: 6px;
+            border-radius: 3px;
+            width: 100%;
+        }
+
+        /* 5. ANIMATED PLAYBACK VIEW */
+        .playback-controls-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .playback-btns {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn-play:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        .btn-control {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
+            color: var(--text-primary);
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-control:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .speed-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .speed-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .speed-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .playback-date-display {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            font-mono: monospace;
+            background: linear-gradient(to right, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .playback-stage {
+            position: relative;
+            padding: 2rem 1.5rem;
+            min-height: 380px;
+        }
+
+        .playback-timeline-axis {
+            position: relative;
+            height: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .playback-cursor {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #06b6d4;
+            box-shadow: 0 0 15px #06b6d4, 0 0 5px #06b6d4;
+            z-index: 20;
+            pointer-events: none;
+            transition: left 0.05s linear;
+        }
+
+        .playback-cursor-head {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: #06b6d4;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #06b6d4;
+        }
+
+        .playback-lane {
+            position: relative;
+            height: 54px;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .playback-bar {
+            position: absolute;
+            height: 42px;
+            border-radius: 10px;
+            transform-origin: left center;
+            transform: scaleX(0);
+            transition: transform 0.1s linear;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .playback-bar-trail {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: #ffffff;
+            box-shadow: 0 0 20px #ffffff, 0 0 10px #ffffff;
+            opacity: 0.8;
+        }
+
+        .playback-callout {
+            position: absolute;
+            bottom: 60px;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(12px);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 30;
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .playback-callout.visible {
+            opacity: 1;
+        }
+
+        .playback-callout-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+        }
+
+        .playback-callout-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* TOOLTIP POPUP */
+        .tooltip-popover {
+            position: fixed;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(16px);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(6px);
+            max-width: 320px;
+        }
+
+        .tooltip-popover.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-header {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.4rem;
+        }
+
+        .tooltip-body {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .gantt-row {
+                grid-template-columns: 200px 1fr;
+            }
+            .gantt-header {
+                grid-template-columns: 200px 1fr;
+            }
+            .gantt-bg-grid {
+                left: 200px;
+            }
+            .list-item {
+                grid-template-columns: 8px 1fr 1fr;
+            }
+            .list-topics, .list-team {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            nav {
+                overflow-x: auto;
+            }
+            main {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">AH</div>
+            <div class="brand-text">
+                <h1>ARENA & Opportunity HUB</h1>
+                <p>Projekt-Timeline 2026</p>
+            </div>
+        </div>
+
+        <nav>
+            <button class="nav-btn active" onclick="switchView('gantt')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 10h8"/><path d="M7 14h11"/><path d="M7 6h4"/></svg>
+                Gantt
+            </button>
+            <button class="nav-btn" onclick="switchView('cards')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Karten
+            </button>
+            <button class="nav-btn" onclick="switchView('list')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                Liste
+            </button>
+            <button class="nav-btn" onclick="switchView('calendar')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Kalender
+            </button>
+            <button class="nav-btn" onclick="switchView('playback')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Verlauf
+            </button>
+        </nav>
+
+        <div class="header-actions">
+            <button class="btn-download" id="downloadBtn" onclick="downloadDashboard()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                HTML Herunterladen
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main>
+        
+        <!-- 1. GANTT VIEW -->
+        <section id="view-gantt" class="view-panel active">
+            <div class="glass-card gantt-container">
+                <div class="gantt-header">
+                    <div><strong>Projekt</strong></div>
+                    <div class="gantt-months-grid">
+                        <div>April 2026</div>
+                        <div>Mai 2026</div>
+                        <div>Juni 2026</div>
+                        <div>Juli 2026</div>
+                        <div>August 2026</div>
+                    </div>
+                </div>
+
+                <div class="gantt-body" id="ganttRowsContainer">
+                    <div class="gantt-bg-grid">
+                        <div class="gantt-grid-col"></div>
+                        <div class="gantt-grid-col"></div>
+                        <div class="gantt-grid-col"></div>
+                        <div class="gantt-grid-col"></div>
+                        <div class="gantt-grid-col"></div>
+                    </div>
+                    <!-- Rows generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. CARD VIEW -->
+        <section id="view-cards" class="view-panel">
+            <div class="cards-grid" id="cardsContainer">
+                <!-- Cards generated dynamically -->
+            </div>
+        </section>
+
+        <!-- 3. COMPACT LIST VIEW -->
+        <section id="view-list" class="view-panel">
+            <div class="glass-card">
+                <div class="list-container" id="listContainer">
+                    <!-- List items generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. CALENDAR VIEW -->
+        <section id="view-calendar" class="view-panel">
+            <div class="glass-card">
+                <div class="calendar-controls">
+                    <h2 id="calMonthTitle" style="font-size:1.2rem; font-weight:700;">April 2026</h2>
+                    <div class="month-selector">
+                        <button class="month-btn" onclick="renderCalendar(3)">Apr</button>
+                        <button class="month-btn" onclick="renderCalendar(4)">Mai</button>
+                        <button class="month-btn" onclick="renderCalendar(5)">Jun</button>
+                        <button class="month-btn" onclick="renderCalendar(6)">Jul</button>
+                        <button class="month-btn active" onclick="renderCalendar(7)">Aug</button>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <div class="cal-day-header">Mo</div>
+                    <div class="cal-day-header">Di</div>
+                    <div class="cal-day-header">Mi</div>
+                    <div class="cal-day-header">Do</div>
+                    <div class="cal-day-header">Fr</div>
+                    <div class="cal-day-header">Sa</div>
+                    <div class="cal-day-header">So</div>
+                </div>
+                <div class="calendar-grid" id="calendarDaysContainer" style="margin-top: 0.5rem;">
+                    <!-- Calendar days generated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ANIMATED PLAYBACK VIEW -->
+        <section id="view-playback" class="view-panel">
+            <div class="glass-card">
+                <div class="playback-controls-bar">
+                    <div class="playback-btns">
+                        <button class="btn-play" id="playBtn" onclick="togglePlayback()">►</button>
+                        <button class="btn-control" onclick="resetPlayback()">Reset</button>
+                        <div class="speed-selector">
+                            <button class="speed-btn active" onclick="setSpeed(1, this)">1x</button>
+                            <button class="speed-btn" onclick="setSpeed(2, this)">2x</button>
+                            <button class="speed-btn" onclick="setSpeed(4, this)">4x</button>
+                        </div>
+                    </div>
+                    <div class="playback-date-display" id="playbackDateDisplay">
+                        01.04.2026
+                    </div>
+                </div>
+
+                <div class="playback-stage" id="playbackStage">
+                    <div class="playback-timeline-axis">
+                        <div>April</div>
+                        <div>Mai</div>
+                        <div>Juni</div>
+                        <div>Juli</div>
+                        <div>August</div>
+                    </div>
+
+                    <div class="playback-cursor" id="playbackCursor">
+                        <div class="playback-cursor-head"></div>
+                    </div>
+
+                    <div id="playbackLanesContainer">
+                        <!-- Playback lanes generated dynamically -->
+                    </div>
+
+                    <div class="playback-callout" id="playbackCallout">
+                        <div class="playback-callout-title" id="calloutTitle">Projekt</div>
+                        <div class="playback-callout-sub" id="calloutSub">Themen...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TOOLTIP POPOVER -->
+    <div class="tooltip-popover" id="tooltipPopover">
+        <div class="tooltip-header" id="tooltipTitle">Projekt Name</div>
+        <div class="tooltip-body">
+            <div><strong>Zeitraum:</strong> <span id="tooltipDates"></span></div>
+            <div><strong>Themen:</strong> <span id="tooltipTopics"></span></div>
+            <div><strong>Team:</strong> <span id="tooltipTeam"></span></div>
+        </div>
+    </div>
+
+    <script>
+        // DATA SET (Strictly 2026 projects, sorted newest start date first)
+        const TODAY_STR = '2026-08-10';
+        const TODAY = new Date('2026-08-10T00:00:00');
+        const TIMELINE_START = new Date('2026-04-01T00:00:00');
+        const TIMELINE_END = new Date('2026-08-10T00:00:00');
+        const TOTAL_DAYS = (TIMELINE_END - TIMELINE_START) / (1000 * 60 * 60 * 24);
+
+        const PROJECTS = [
+            {
+                id: 'p1',
+                name: 'Opportunity HUB goes ARENA HUB',
+                startStr: '14.07.2026',
+                endStr: 'heute',
+                startDate: new Date('2026-07-14T00:00:00'),
+                endDate: TODAY,
+                isOngoing: true,
+                topics: ['Agentic SLDC – Claude', 'Setup Brownfield', 'Vorgehensmodell'],
+                team: [
+                    { name: 'Tobias Torkler', role: 'Member' },
+                    { name: 'Michael Umov', role: 'Member' }
+                ],
+                color: 'var(--color-p1)',
+                glow: 'var(--color-p1-glow)'
+            },
+            {
+                id: 'p2',
+                name: 'ARENA Hub reloaded',
+                startStr: '06.07.2026',
+                endStr: 'heute',
+                startDate: new Date('2026-07-06T00:00:00'),
+                endDate: TODAY,
+                isOngoing: true,
+                topics: ['Agentic SLDC – Claude', 'GitOps'],
+                team: [
+                    { name: 'Thomas Fritsche', role: 'PO' },
+                    { name: 'Dominik Jacob', role: 'Member' },
+                    { name: 'Joey Rösner', role: 'Member' },
+                    { name: 'Jessy Osei', role: 'Member' },
+                    { name: 'Sascha Dederer', role: 'Member' }
+                ],
+                color: 'var(--color-p2)',
+                glow: 'var(--color-p2-glow)'
+            },
+            {
+                id: 'p3',
+                name: 'Opportunity Hub',
+                startStr: '27.05.2026',
+                endStr: 'heute',
+                startDate: new Date('2026-05-27T00:00:00'),
+                endDate: TODAY,
+                isOngoing: true,
+                topics: ['Agentic SLDC – Claude', 'GitOps', 'Hop-on / Hop-off'],
+                team: [
+                    { name: 'Sören Wohlers', role: 'PO' },
+                    { name: 'Jan Prien', role: 'Member' },
+                    { name: 'Sebastian Frick', role: 'Member' },
+                    { name: 'Alexis Cerna', role: 'Member' },
+                    { name: 'Sulan Abubakarov', role: 'Member' },
+                    { name: 'Florian Hagen', role: 'Member' },
+                    { name: 'Thomas Fritsche', role: 'Member' }
+                ],
+                color: 'var(--color-p3)',
+                glow: 'var(--color-p3-glow)'
+            },
+            {
+                id: 'p4',
+                name: 'ARENA Hub',
+                startStr: '07.04.2026',
+                endStr: '30.04.2026',
+                startDate: new Date('2026-04-07T00:00:00'),
+                endDate: new Date('2026-04-30T00:00:00'),
+                isOngoing: false,
+                topics: ['Klassische Webapp', 'Frontend: Angular', 'Backend: Spring Boot'],
+                team: [
+                    { name: 'Thorsten Rodenhäuser', role: 'PO' },
+                    { name: 'Max Semdner', role: 'Member' },
+                    { name: 'Florian Hagen', role: 'Member' },
+                    { name: 'Jan Prien', role: 'Member' },
+                    { name: 'Sascha Dederer', role: 'Member' },
+                    { name: 'Mohamed Mukhtar', role: 'Member' }
+                ],
+                color: 'var(--color-p4)',
+                glow: 'var(--color-p4-glow)'
+            }
+        ];
+
+        // VIEW SWITCHING
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if(viewId === 'playback') {
+                resetPlayback();
+            }
+        }
+
+        // TOOLTIP LOGIC
+        const tooltip = document.getElementById('tooltipPopover');
+        function showTooltip(e, p) {
+            document.getElementById('tooltipTitle').innerText = p.name;
+            document.getElementById('tooltipDates').innerText = `${p.startStr} – ${p.endStr}`;
+            document.getElementById('tooltipTopics').innerText = p.topics.join(', ');
+            document.getElementById('tooltipTeam').innerText = p.team.map(m => m.name + (m.role === 'PO' ? ' (PO)' : '')).join(', ');
+
+            tooltip.classList.add('visible');
+            moveTooltip(e);
+        }
+
+        function moveTooltip(e) {
+            const x = Math.min(e.clientX + 15, window.innerWidth - 340);
+            const y = Math.min(e.clientY + 15, window.innerHeight - 200);
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        // 1. RENDER GANTT
+        function renderGantt() {
+            const container = document.getElementById('ganttRowsContainer');
+            // Remove previous rows except bg-grid
+            container.querySelectorAll('.gantt-row, .gantt-today-line').forEach(el => el.remove());
+
+            // Position of Today line
+            const todayPct = ((TODAY - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100;
+            const todayLine = document.createElement('div');
+            todayLine.className = 'gantt-today-line';
+            todayLine.style.left = `calc(280px + (100% - 280px) * ${todayPct / 100})`;
+            todayLine.innerHTML = `<div class="gantt-today-badge">HEUTE (10.08.)</div>`;
+            container.appendChild(todayLine);
+
+            PROJECTS.forEach(p => {
+                const row = document.createElement('div');
+                row.className = 'gantt-row';
+
+                const startPct = Math.max(0, ((p.startDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100);
+                const endPct = Math.min(100, ((p.endDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100);
+                const widthPct = endPct - startPct;
+
+                row.innerHTML = `
+                    <div class="gantt-project-info">
+                        <div class="gantt-project-title">${p.name}</div>
+                        <div class="gantt-project-dates">${p.startStr} – ${p.endStr}</div>
+                    </div>
+                    <div class="gantt-track-area">
+                        <div class="gantt-bar ${p.isOngoing ? 'ongoing' : ''}" 
+                             style="left: ${startPct}%; width: ${widthPct}%; background: ${p.color}; box-shadow: 0 4px 15px ${p.glow};"
+                             onmousemove="showTooltip(event, PROJECTS.find(x=>x.id==='${p.id}'))"
+                             onmouseleave="hideTooltip()">
+                            ${p.name}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // 2. RENDER CARDS
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            PROJECTS.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'glass-card project-card';
+                card.innerHTML = `
+                    <div class="card-accent-bar" style="background: ${p.color}; box-shadow: 0 0 10px ${p.color};"></div>
+                    <div>
+                        <div class="card-header">
+                            <div class="card-title">${p.name}</div>
+                            <span class="badge-status ${p.isOngoing ? 'badge-active' : 'badge-completed'}">
+                                ${p.isOngoing ? 'Laufend' : 'Abgeschlossen'}
+                            </span>
+                        </div>
+                        <div class="card-dates">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            ${p.startStr} – ${p.endStr}
+                        </div>
+
+                        <div class="card-section-label">Themen</div>
+                        <div class="card-topics">
+                            ${p.topics.map(t => `<span class="tag">${t}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="card-section-label">Team & Rollen</div>
+                        <div class="card-team">
+                            ${p.team.map(m => `
+                                <div class="team-member ${m.role === 'PO' ? 'po' : ''}">
+                                    ${m.role === 'PO' ? '👑 ' : ''}${m.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 3. RENDER COMPACT LIST
+        function renderList() {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = '';
+
+            PROJECTS.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="list-color-indicator" style="background: ${p.color}; box-shadow: 0 0 8px ${p.glow};"></div>
+                    <div class="list-title">${p.name}</div>
+                    <div class="list-dates">${p.startStr} – ${p.endStr}</div>
+                    <div class="list-topics">
+                        ${p.topics.map(t => `<span class="tag">${t}</span>`).join('')}
+                    </div>
+                    <div class="list-team" title="${p.team.map(m=>m.name).join(', ')}">
+                        👥 ${p.team.map(m => m.name).join(', ')}
+                    </div>
+                    <div>
+                        <span class="badge-status ${p.isOngoing ? 'badge-active' : 'badge-completed'}">
+                            ${p.isOngoing ? 'Laufend' : 'Beendet'}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // 4. RENDER CALENDAR
+        let currentCalMonth = 7; // August (0-indexed: Apr=3, Mai=4, Jun=5, Jul=6, Aug=7)
+        function renderCalendar(monthIdx) {
+            currentCalMonth = monthIdx;
+            
+            // Update nav buttons
+            document.querySelectorAll('.month-btn').forEach((btn, idx) => {
+                btn.classList.toggle('active', idx + 3 === monthIdx);
+            });
+
+            const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August'];
+            document.getElementById('calMonthTitle').innerText = `${monthNames[monthIdx]} 2026`;
+
+            const container = document.getElementById('calendarDaysContainer');
+            container.innerHTML = '';
+
+            const year = 2026;
+            const firstDay = new Date(year, monthIdx, 1);
+            const lastDay = new Date(year, monthIdx + 1, 0);
+
+            let startingDay = firstDay.getDay() - 1; // Mon = 0
+            if (startingDay === -1) startingDay = 6; // Sun = 6
+
+            // Previous month padding
+            const prevMonthLastDay = new Date(year, monthIdx, 0).getDate();
+            for (let i = startingDay - 1; i >= 0; i--) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-day-cell other-month';
+                cell.innerHTML = `<div class="cal-day-num">${prevMonthLastDay - i}</div>`;
+                container.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const currentDate = new Date(year, monthIdx, day);
+                const cell = document.createElement('div');
+                cell.className = 'cal-day-cell';
+
+                const isToday = (day === 10 && monthIdx === 7);
+                if (isToday) cell.classList.add('is-today');
+
+                // Active projects for this day
+                const activeProjs = PROJECTS.filter(p => currentDate >= p.startDate && currentDate <= p.endDate);
+
+                let eventsHtml = '<div class="cal-events-container">';
+                activeProjs.forEach(p => {
+                    eventsHtml += `<div class="cal-event-bar" style="background: ${p.color}; box-shadow: 0 0 6px ${p.glow};" title="${p.name}"></div>`;
+                });
+                eventsHtml += '</div>';
+
+                cell.innerHTML = `
+                    <div class="cal-day-num">${day}</div>
+                    ${eventsHtml}
+                `;
+
+                if (activeProjs.length > 0) {
+                    cell.style.cursor = 'pointer';
+                    cell.onmousemove = (e) => {
+                        const summary = {
+                            name: `Projekte am ${day}.${monthIdx+1}.2026`,
+                            startStr: `${activeProjs.length} aktiv`,
+                            endStr: '',
+                            topics: activeProjs.map(p => p.name),
+                            team: activeProjs.flatMap(p => p.team)
+                        };
+                        showTooltip(e, summary);
+                    };
+                    cell.onmouseleave = hideTooltip;
+                }
+
+                container.appendChild(cell);
+            }
+        }
+
+        // 5. ANIMATED PLAYBACK LOGIC
+        let playbackAnimId = null;
+        let playbackProgress = 0; // 0 to 1
+        let isPlaying = false;
+        let playbackSpeed = 1;
+
+        function initPlaybackStage() {
+            const container = document.getElementById('playbackLanesContainer');
+            container.innerHTML = '';
+
+            PROJECTS.forEach(p => {
+                const lane = document.createElement('div');
+                lane.className = 'playback-lane';
+
+                const startPct = Math.max(0, ((p.startDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100);
+                const endPct = Math.min(100, ((p.endDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START)) * 100);
+                const fullWidthPct = endPct - startPct;
+
+                lane.innerHTML = `
+                    <div class="playback-bar" id="pbar-${p.id}"
+                         style="left: ${startPct}%; width: ${fullWidthPct}%; background: ${p.color}; box-shadow: 0 4px 20px ${p.glow};">
+                        ${p.name}
+                        <div class="playback-bar-trail"></div>
+                    </div>
+                `;
+                container.appendChild(lane);
+            });
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                pausePlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            isPlaying = true;
+            document.getElementById('playBtn').innerText = '❚❚';
+            let lastTime = performance.now();
+
+            function step(now) {
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+
+                // Full duration = 12 seconds at 1x speed
+                playbackProgress += (dt / 12) * playbackSpeed;
+
+                if (playbackProgress >= 1) {
+                    playbackProgress = 1;
+                    updatePlaybackFrame();
+                    pausePlayback();
+                    return;
+                }
+
+                updatePlaybackFrame();
+                playbackAnimId = requestAnimationFrame(step);
+            }
+
+            playbackAnimId = requestAnimationFrame(step);
+        }
+
+        function pausePlayback() {
+            isPlaying = false;
+            document.getElementById('playBtn').innerText = '►';
+            if (playbackAnimId) cancelAnimationFrame(playbackAnimId);
+        }
+
+        function resetPlayback() {
+            pausePlayback();
+            playbackProgress = 0;
+            updatePlaybackFrame();
+        }
+
+        function setSpeed(s, btn) {
+            playbackSpeed = s;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function updatePlaybackFrame() {
+            const cursor = document.getElementById('playbackCursor');
+            const dateDisplay = document.getElementById('playbackDateDisplay');
+            const callout = document.getElementById('playbackCallout');
+
+            cursor.style.left = `${playbackProgress * 100}%`;
+
+            // Calculate Current Date
+            const currentMs = TIMELINE_START.getTime() + playbackProgress * (TIMELINE_END.getTime() - TIMELINE_START.getTime());
+            const currentDate = new Date(currentMs);
+            
+            const dd = String(currentDate.getDate()).padStart(2, '0');
+            const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+            dateDisplay.innerText = `${dd}.${mm}.2026`;
+
+            // Update Progress of Bars
+            let activeCalloutProj = null;
+
+            PROJECTS.forEach(p => {
+                const bar = document.getElementById(`pbar-${p.id}`);
+                const startPct = ((p.startDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START));
+                const endPct = ((p.endDate - TIMELINE_START) / (TIMELINE_END - TIMELINE_START));
+
+                if (playbackProgress < startPct) {
+                    bar.style.transform = 'scaleX(0)';
+                } else if (playbackProgress >= startPct && playbackProgress <= endPct) {
+                    const localProgress = (playbackProgress - startPct) / (endPct - startPct);
+                    bar.style.transform = `scaleX(${localProgress})`;
+                    activeCalloutProj = p; // Show callout for active growing project
+                } else {
+                    bar.style.transform = 'scaleX(1)';
+                }
+            });
+
+            // Callout logic
+            if (activeCalloutProj) {
+                document.getElementById('calloutTitle').innerText = activeCalloutProj.name;
+                document.getElementById('calloutSub').innerText = activeCalloutProj.topics.join(' • ');
+                callout.style.left = `${playbackProgress * 100}%`;
+                callout.classList.add('visible');
+            } else {
+                callout.classList.remove('visible');
+            }
+        }
+
+        // DOWNLOAD FUNCTIONALITY (Self-contained HTML export)
+        function downloadDashboard() {
+            const htmlContent = '<!DOCTYPE html>
+' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ARENA_Opportunity_HUB_Dashboard_2026.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGantt();
+            renderCards();
+            renderList();
+            renderCalendar(7); // Default August
+            initPlaybackStage();
+            updatePlaybackFrame();
+        });
+    </script>
+</body>
+</html>

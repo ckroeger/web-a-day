@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Project Timeline Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a102d 50%, #240a3a 100%);
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .project-card {
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        .gantt-bar {
+            transition: width 0.5s ease;
+        }
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        .calendar-day:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .timeline-cursor {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        .fade-out {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, var(--tw-gradient-to) 100%);
+        }
+        .tooltip {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .group:hover .tooltip {
+            opacity: 1;
+        }
+        .tag {
+            animation: tagPop 0.3s ease-out;
+        }
+        @keyframes tagPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen relative overflow-x-hidden">
+    <!-- Background gradient circles -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500 rounded-full opacity-20 blur-3xl"></div>
+        <div class="absolute top-1/2 right-1/4 w-80 h-80 bg-cyan-500 rounded-full opacity-20 blur-3xl"></div>
+        <div class="absolute bottom-1/4 right-1/3 w-72 h-72 bg-magenta-500 rounded-full opacity-20 blur-3xl"></div>
+    </div>
+
+    <!-- Main content -->
+    <div class="relative z-10 p-4 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-violet-400 to-cyan-300 bg-clip-text text-transparent">
+                    Project Timeline Dashboard
+                </h1>
+                <p class="text-gray-300 text-sm md:text-base">Interaktive Ansicht der Projekte von April bis August 2026</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
+                <button id="downloadBtn" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 rounded-lg text-white font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
+                    ⬇️ Dashboard herunterladen
+                </button>
+                <div class="text-sm text-gray-400 self-end">
+                    Heute: <span id="todayDate" class="font-mono">10.08.2026</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="mb-8 glassmorphism rounded-xl p-1">
+            <div class="flex flex-wrap justify-center gap-2" id="viewNav">
+                <button class="view-btn active px-4 py-2 rounded-lg text-sm md:text-base font-medium bg-white text-gray-900" data-view="gantt">Gantt-Diagramm</button>
+                <button class="view-btn px-4 py-2 rounded-lg text-sm md:text-base font-medium text-gray-300 hover:bg-white hover:bg-opacity-20 transition-colors" data-view="cards">Karten-Ansicht</button>
+                <button class="view-btn px-4 py-2 rounded-lg text-sm md:text-base font-medium text-gray-300 hover:bg-white hover:bg-opacity-20 transition-colors" data-view="list">Kompakt-Liste</button>
+                <button class="view-btn px-4 py-2 rounded-lg text-sm md:text-base font-medium text-gray-300 hover:bg-white hover:bg-opacity-20 transition-colors" data-view="calendar">Kalenderansicht</button>
+                <button class="view-btn px-4 py-2 rounded-lg text-sm md:text-base font-medium text-gray-300 hover:bg-white hover:bg-opacity-20 transition-colors" data-view="timeline">Animierte Verlaufsansicht</button>
+            </div>
+        </nav>
+
+        <!-- Views container -->
+        <div id="viewsContainer" class="relative">
+            <!-- Gantt View -->
+            <div id="ganttView" class="view active">
+                <div class="glassmorphism rounded-xl p-6">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Gantt-Diagramm</h2>
+                        <div class="grid grid-cols-5 gap-4 text-center text-sm mb-4">
+                            <div>April</div>
+                            <div>Mai</div>
+                            <div>Juni</div>
+                            <div>Juli</div>
+                            <div>August</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Today Line -->
+                        <div class="relative h-8">
+                            <div class="absolute top-0 left-0 w-full h-0.5 bg-gray-600"></div>
+                            <div class="absolute top-0 left-[70.4%] w-0.5 h-full bg-cyan-400 timeline-cursor" style="left: calc(44/106 * 100%)"></div>
+                            <div class="absolute -top-2.5 left-[70%] transform -translate-x-1/2 text-xs bg-cyan-400 text-gray-900 px-2 py-0.5 rounded">Heute</div>
+                        </div>
+
+                        <!-- Projects -->
+                        <div class="space-y-3">
+                            <div class="project-gantt" data-project="0">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-cyan-400 mr-3"></div>
+                                    <div class="text-sm font-medium">Opportunity HUB goes ARENA HUB</div>
+                                </div>
+                                <div class="relative h-6 bg-gray-700 rounded overflow-hidden">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-violet-400 to-cyan-400 gantt-bar" style="width: 26.4%"></div>
+                                    <div class="absolute right-0 top-0 h-full w-12 fade-out" style="background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(74, 222, 198, 0.8) 100%)"></div>
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs bg-black bg-opacity-70 px-1 rounded">laufend</div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                                    <span>14.07.2026</span>
+                                    <span>10.08.2026</span>
+                                </div>
+                            </div>
+
+                            <div class="project-gantt" data-project="1">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-magenta-400 to-violet-400 mr-3"></div>
+                                    <div class="text-sm font-medium">ARENA Hub reloaded</div>
+                                </div>
+                                <div class="relative h-6 bg-gray-700 rounded overflow-hidden">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-magenta-400 to-violet-400 gantt-bar" style="width: 34.9%"></div>
+                                    <div class="absolute right-0 top-0 h-full w-12 fade-out" style="background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(192, 38, 211, 0.8) 100%)"></div>
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs bg-black bg-opacity-70 px-1 rounded">laufend</div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                                    <span>06.07.2026</span>
+                                    <span>10.08.2026</span>
+                                </div>
+                            </div>
+
+                            <div class="project-gantt" data-project="2">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 mr-3"></div>
+                                    <div class="text-sm font-medium">Opportunity Hub</div>
+                                </div>
+                                <div class="relative h-6 bg-gray-700 rounded overflow-hidden">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 gantt-bar" style="width: 70.8%"></div>
+                                    <div class="absolute right-0 top-0 h-full w-12 fade-out" style="background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(34, 197, 231, 0.8) 100%)"></div>
+                                    <div class="absolute right-0 top-1/2 transform -translate-y-1/2 text-xs bg-black bg-opacity-70 px-1 rounded">laufend</div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                                    <span>27.05.2026</span>
+                                    <span>10.08.2026</span>
+                                </div>
+                            </div>
+
+                            <div class="project-gantt" data-project="3">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 mr-3"></div>
+                                    <div class="text-sm font-medium">ARENA Hub</div>
+                                </div>
+                                <div class="relative h-6 bg-gray-700 rounded overflow-hidden">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 gantt-bar" style="width: 23.6%"></div>
+                                    <div class="absolute right-0 top-0 h-full flex items-center pr-2">
+                                        <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Abgeschlossen</span>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1 flex justify-between">
+                                    <span>07.04.2026</span>
+                                    <span>30.04.2026</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards View -->
+            <div id="cardsView" class="view">
+                <div class="glassmorphism rounded-xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Karten-Ansicht</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="project-card glassmorphism rounded-xl p-6 relative overflow-hidden" data-project="0">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-l from-violet-500 to-cyan-400 opacity-20 rounded-bl-full"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-xl font-semibold mb-3">Opportunity HUB goes ARENA HUB</h3>
+                                <div class="text-sm text-gray-300 mb-3">
+                                    <div class="font-medium">Zeitraum:</div>
+                                    <div>14.07.2026 – heute</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-sm font-medium mb-2">Themen:</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="tag px-2 py-1 bg-violet-500 bg-opacity-30 text-violet-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                        <span class="tag px-2 py-1 bg-cyan-500 bg-opacity-30 text-cyan-200 rounded-full text-xs">Setup Brownfield</span>
+                                        <span class="tag px-2 py-1 bg-blue-500 bg-opacity-30 text-blue-200 rounded-full text-xs">Vorgehensmodell</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium mb-2">Wer:</div>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <div>Tobias Torkler</div>
+                                        <div>Michael Umov</div>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-4 right-4 text-xs text-gray-400">Nr. 1</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card glassmorphism rounded-xl p-6 relative overflow-hidden" data-project="1">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-l from-magenta-500 to-violet-500 opacity-20 rounded-bl-full"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-xl font-semibold mb-3">ARENA Hub reloaded</h3>
+                                <div class="text-sm text-gray-300 mb-3">
+                                    <div class="font-medium">Zeitraum:</div>
+                                    <div>06.07.2026 – heute</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-sm font-medium mb-2">Themen:</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="tag px-2 py-1 bg-magenta-500 bg-opacity-30 text-magenta-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                        <span class="tag px-2 py-1 bg-violet-500 bg-opacity-30 text-violet-200 rounded-full text-xs">GitOps</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium mb-2">Wer:</div>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <div>Thomas Fritsche (PO)</div>
+                                        <div>Dominik Jacob</div>
+                                        <div>Joey Rösner</div>
+                                        <div>Jessy Osei</div>
+                                        <div>Sascha Dederer</div>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-4 right-4 text-xs text-gray-400">Nr. 2</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card glassmorphism rounded-xl p-6 relative overflow-hidden" data-project="2">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-l from-cyan-500 to-blue-500 opacity-20 rounded-bl-full"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-xl font-semibold mb-3">Opportunity Hub</h3>
+                                <div class="text-sm text-gray-300 mb-3">
+                                    <div class="font-medium">Zeitraum:</div>
+                                    <div>27.05.2026 – heute</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-sm font-medium mb-2">Themen:</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="tag px-2 py-1 bg-cyan-500 bg-opacity-30 text-cyan-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                        <span class="tag px-2 py-1 bg-blue-500 bg-opacity-30 text-blue-200 rounded-full text-xs">GitOps</span>
+                                        <span class="tag px-2 py-1 bg-indigo-500 bg-opacity-30 text-indigo-200 rounded-full text-xs">Hop-on / Hop-off</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium mb-2">Wer:</div>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <div>Sören Wohlers (PO)</div>
+                                        <div>Jan Prien</div>
+                                        <div>Sebastian Frick</div>
+                                        <div>Alexis Cerna</div>
+                                        <div>Sulan Abubakarov</div>
+                                        <div>Florian Hagen</div>
+                                        <div>Thomas Fritsche</div>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-4 right-4 text-xs text-gray-400">Nr. 3</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card glassmorphism rounded-xl p-6 relative overflow-hidden md:col-span-2 lg:col-span-1" data-project="3">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-l from-purple-500 to-pink-500 opacity-20 rounded-bl-full"></div>
+                            <div class="relative z-10">
+                                <h3 class="text-xl font-semibold mb-3">ARENA Hub</h3>
+                                <div class="text-sm text-gray-300 mb-3">
+                                    <div class="font-medium">Zeitraum:</div>
+                                    <div>07.04.2026 – 30.04.2026</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-sm font-medium mb-2">Themen:</div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="tag px-2 py-1 bg-purple-500 bg-opacity-30 text-purple-200 rounded-full text-xs">Klassische Webapp – Frontend: Angular</span>
+                                        <span class="tag px-2 py-1 bg-pink-500 bg-opacity-30 text-pink-200 rounded-full text-xs">Backend: Spring Boot</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium mb-2">Wer:</div>
+                                    <div class="text-sm text-gray-300 space-y-1">
+                                        <div>Thorsten Rodenhäuser (PO)</div>
+                                        <div>Max Semdner</div>
+                                        <div>Florian Hagen</div>
+                                        <div>Jan Prien</div>
+                                        <div>Sascha Dederer</div>
+                                        <div>Mohamed Mukhtar</div>
+                                    </div>
+                                </div>
+                                <div class="absolute bottom-4 right-4">
+                                    <span class="text-xs bg-green-500 text-white px-2 py-0.5 rounded">Abgeschlossen</span>
+                                </div>
+                                <div class="absolute bottom-4 right-4 text-xs text-gray-400" style="right: 3rem;">Nr. 4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div id="listView" class="view">
+                <div class="glassmorphism rounded-xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Kompakt-Liste</h2>
+                    <div class="space-y-4">
+                        <div class="flex flex-col md:flex-row md:items-center p-4 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all" data-project="0">
+                            <div class="flex-1 mb-2 md:mb-0">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-cyan-400 mr-3"></div>
+                                    <h3 class="font-semibold">Opportunity HUB goes ARENA HUB</h3>
+                                </div>
+                                <div class="text-sm text-gray-300 mt-1 ml-6">14.07.2026 – heute</div>
+                                <div class="flex flex-wrap gap-2 mt-2 ml-6">
+                                    <span class="px-2 py-1 bg-violet-500 bg-opacity-30 text-violet-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                    <span class="px-2 py-1 bg-cyan-500 bg-opacity-30 text-cyan-200 rounded-full text-xs">Setup Brownfield</span>
+                                    <span class="px-2 py-1 bg-blue-500 bg-opacity-30 text-blue-200 rounded-full text-xs">Vorgehensmodell</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-sm text-gray-300">
+                                <span>Tobias Torkler</span>
+                                <span>Michael Umov</span>
+                            </div>
+                            <div class="text-right mt-2 md:mt-0 ml-4">
+                                <div class="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Nr. 1</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center p-4 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all" data-project="1">
+                            <div class="flex-1 mb-2 md:mb-0">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-magenta-400 to-violet-400 mr-3"></div>
+                                    <h3 class="font-semibold">ARENA Hub reloaded</h3>
+                                </div>
+                                <div class="text-sm text-gray-300 mt-1 ml-6">06.07.2026 – heute</div>
+                                <div class="flex flex-wrap gap-2 mt-2 ml-6">
+                                    <span class="px-2 py-1 bg-magenta-500 bg-opacity-30 text-magenta-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                    <span class="px-2 py-1 bg-violet-500 bg-opacity-30 text-violet-200 rounded-full text-xs">GitOps</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-sm text-gray-300">
+                                <span>Thomas Fritsche (PO)</span>
+                                <span>Dominik Jacob</span>
+                                <span>Joey Rösner</span>
+                                <span>Jessy Osei</span>
+                                <span>Sascha Dederer</span>
+                            </div>
+                            <div class="text-right mt-2 md:mt-0 ml-4">
+                                <div class="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Nr. 2</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center p-4 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all" data-project="2">
+                            <div class="flex-1 mb-2 md:mb-0">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 mr-3"></div>
+                                    <h3 class="font-semibold">Opportunity Hub</h3>
+                                </div>
+                                <div class="text-sm text-gray-300 mt-1 ml-6">27.05.2026 – heute</div>
+                                <div class="flex flex-wrap gap-2 mt-2 ml-6">
+                                    <span class="px-2 py-1 bg-cyan-500 bg-opacity-30 text-cyan-200 rounded-full text-xs">Agentic SLDC – Claude</span>
+                                    <span class="px-2 py-1 bg-blue-500 bg-opacity-30 text-blue-200 rounded-full text-xs">GitOps</span>
+                                    <span class="px-2 py-1 bg-indigo-500 bg-opacity-30 text-indigo-200 rounded-full text-xs">Hop-on / Hop-off</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-sm text-gray-300">
+                                <span>Sören Wohlers (PO)</span>
+                                <span>Jan Prien</span>
+                                <span>Sebastian Frick</span>
+                                <span>Alexis Cerna</span>
+                                <span>Sulan Abubakarov</span>
+                                <span>Florian Hagen</span>
+                                <span>Thomas Fritsche</span>
+                            </div>
+                            <div class="text-right mt-2 md:mt-0 ml-4">
+                                <div class="text-xs bg-black bg-opacity-50 px-2 py-1 rounded">Nr. 3</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row md:items-center p-4 bg-white bg-opacity-5 rounded-lg hover:bg-opacity-10 transition-all" data-project="3">
+                            <div class="flex-1 mb-2 md:mb-0">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 mr-3"></div>
+                                    <h3 class="font-semibold">ARENA Hub</h3>
+                                </div>
+                                <div class="text-sm text-gray-300 mt-1 ml-6">07.04.2026 – 30.04.2026</div>
+                                <div class="flex flex-wrap gap-2 mt-2 ml-6">
+                                    <span class="px-2 py-1 bg-purple-500 bg-opacity-30 text-purple-200 rounded-full text-xs">Klassische Webapp – Frontend: Angular</span>
+                                    <span class="px-2 py-1 bg-pink-500 bg-opacity-30 text-pink-200 rounded-full text-xs">Backend: Spring Boot</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-sm text-gray-300">
+                                <span>Thorsten Rodenhäuser (PO)</span>
+                                <span>Max Semdner</span>
+                                <span>Florian Hagen</span>
+                                <span>Jan Prien</span>
+                                <span>Sascha Dederer</span>
+                                <span>Mohamed Mukhtar</span>
+                            </div>
+                            <div class="text-right mt-2 md:mt-0 ml-4">
+                                <div class="text-xs bg-green-500 bg-opacity-30 text-green-200 px-2 py-1 rounded">Abgeschlossen</div>
+                                <div class="text-xs bg-black bg-opacity-50 px-2 py-1 rounded mt-1">Nr. 4</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div id="calendarView" class="view">
+                <div class="glassmorphism rounded-xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Kalenderansicht</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- April -->
+                        <div class="calendar-month">
+                            <h3 class="text-xl font-semibold mb-4 text-center">April 2026</h3>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <div class="font-medium text-gray-400 py-2">Mo</div>
+                                <div class="font-medium text-gray-400 py-2">Di</div>
+                                <div class="font-medium text-gray-400 py-2">Mi</div>
+                                <div class="font-medium text-gray-400 py-2">Do</div>
+                                <div class="font-medium text-gray-400 py-2">Fr</div>
+                                <div class="font-medium text-gray-400 py-2">Sa</div>
+                                <div class="font-medium text-gray-400 py-2">So</div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-01">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-02">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-03">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-04">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-04-05">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-04-06">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        ARENA Hub
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-04-07">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        ARENA Hub (Start)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-08">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-09">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-10">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-11">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+
+                                <!-- Continue pattern for all days -->
+                                <div class="calendar-day p-2 relative" data-date="2026-04-12"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-13"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-14"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-15"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-16"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-17"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-18"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-04-19"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-20"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-21"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-22"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-23"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-24"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-25"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <div class="calendar-day p-2 relative group" data-date="2026-04-26">
+                                    <div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        ARENA Hub (Ende: 30.04)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-27"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-04-28">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        ARENA Hub (Ende)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-29"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-04-30"><div class="bg-purple-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- May -->
+                        <div class="calendar-month">
+                            <h3 class="text-xl font-semibold mb-4 text-center">Mai 2026</h3>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <div class="font-medium text-gray-400 py-2">Mo</div>
+                                <div class="font-medium text-gray-400 py-2">Di</div>
+                                <div class="font-medium text-gray-400 py-2">Mi</div>
+                                <div class="font-medium text-gray-400 py-2">Do</div>
+                                <div class="font-medium text-gray-400 py-2">Fr</div>
+                                <div class="font-medium text-gray-400 py-2">Sa</div>
+                                <div class="font-medium text-gray-400 py-2">So</div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 group" data-date="2026-05-03">
+                                    <div class="bg-cyan-500 bg-opacity-20 h-6 w-full rounded"></div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity Hub (Start: 27.05)
+                                    </div>
+                                </div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 group" data-date="2026-05-10">
+                                    <div class="bg-cyan-500 bg-opacity-20 h-6 w-full rounded"></div>
+                                </div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 group" data-date="2026-05-17">
+                                    <div class="bg-cyan-500 bg-opacity-20 h-6 w-full rounded"></div>
+                                </div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-05-24">
+                                    <div class="bg-cyan-500 bg-opacity-20 h-6 w-full rounded"></div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity Hub (Start: 27.05)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-05-25">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded opacity-40"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity Hub (Start: morgen)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-05-26">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded opacity-60"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity Hub (Start: morgen)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-05-27">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity Hub (Start)
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-05-28">
+                                    <div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-05-29">
+                                    <div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-05-30">
+                                    <div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-05-31">
+                                    <div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- June -->
+                        <div class="calendar-month">
+                            <h3 class="text-xl font-semibold mb-4 text-center">Juni 2026</h3>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <div class="font-medium text-gray-400 py-2">Mo</div>
+                                <div class="font-medium text-gray-400 py-2">Di</div>
+                                <div class="font-medium text-gray-400 py-2">Mi</div>
+                                <div class="font-medium text-gray-400 py-2">Do</div>
+                                <div class="font-medium text-gray-400 py-2">Fr</div>
+                                <div class="font-medium text-gray-400 py-2">Sa</div>
+                                <div class="font-medium text-gray-400 py-2">So</div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-06-01"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-02"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-03"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-04"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-05"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-06"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-07"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <!-- All June days -->
+                                <div class="calendar-day p-2 relative" data-date="2026-06-08"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-09"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-10"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-11"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-12"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-13"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-14"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-06-15"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-16"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-17"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-18"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-19"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-20"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-21"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-06-22"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-23"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-24"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-25"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-26"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-27"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-28"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-06-29"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-06-30"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- July -->
+                        <div class="calendar-month">
+                            <h3 class="text-xl font-semibold mb-4 text-center">Juli 2026</h3>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <div class="font-medium text-gray-400 py-2">Mo</div>
+                                <div class="font-medium text-gray-400 py-2">Di</div>
+                                <div class="font-medium text-gray-400 py-2">Mi</div>
+                                <div class="font-medium text-gray-400 py-2">Do</div>
+                                <div class="font-medium text-gray-400 py-2">Fr</div>
+                                <div class="font-medium text-gray-400 py-2">Sa</div>
+                                <div class="font-medium text-gray-400 py-2">So</div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-07-01"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-02"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-03"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-04"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-05"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-20 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-07-06">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-cyan-500 bg-opacity-30 rounded"></div>
+                                        <div class="absolute bottom-0 left-0 h-3 w-full bg-gradient-to-r from-magenta-500 to-violet-500 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        ARENA Hub reloaded (Start)<br>Opportunity Hub
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-07"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-07-08"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-09"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-10"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-11"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-12"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-13"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-20 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-07-14">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-cyan-500 bg-opacity-30 rounded"></div>
+                                        <div class="absolute bottom-2 left-0 h-3 w-full bg-gradient-to-r from-magenta-500 to-violet-500 rounded opacity-80"></div>
+                                        <div class="absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-violet-500 to-cyan-500 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity HUB goes ARENA HUB (Start)<br>ARENA Hub reloaded<br>Opportunity Hub
+                                    </div>
+                                </div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-07-15"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-16"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-17"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-18"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-19"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-20"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-21"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-07-22"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-23"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-24"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-25"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-26"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-27"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-28"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-07-29"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-30"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-07-31"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- August -->
+                        <div class="calendar-month">
+                            <h3 class="text-xl font-semibold mb-4 text-center">August 2026</h3>
+                            <div class="grid grid-cols-7 gap-1 text-center text-sm">
+                                <div class="font-medium text-gray-400 py-2">Mo</div>
+                                <div class="font-medium text-gray-400 py-2">Di</div>
+                                <div class="font-medium text-gray-400 py-2">Mi</div>
+                                <div class="font-medium text-gray-400 py-2">Do</div>
+                                <div class="font-medium text-gray-400 py-2">Fr</div>
+                                <div class="font-medium text-gray-400 py-2">Sa</div>
+                                <div class="font-medium text-gray-400 py-2">So</div>
+
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2"></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-08-01"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative group" data-date="2026-08-02">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-cyan-500 bg-opacity-30 rounded"></div>
+                                        <div class="absolute bottom-2 left-0 h-3 w-full bg-magenta-500 bg-opacity-30 rounded"></div>
+                                        <div class="absolute bottom-0 left-0 h-2 w-full bg-violet-500 bg-opacity-30 rounded"></div>
+                                    </div>
+                                    <div class="tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs">
+                                        Opportunity HUB goes ARENA HUB<br>ARENA Hub reloaded<br>Opportunity Hub
+                                    </div>
+                                </div>
+
+                                <div class="calendar-day p-2 relative" data-date="2026-08-03"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-08-04"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-08-05"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-08-06"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative" data-date="2026-08-07"><div class="bg-cyan-500 bg-opacity-30 h-6 w-full rounded"></div><div class="bg-magenta-500 bg-opacity-30 h-3 w-full rounded mt-1"></div><div class="bg-violet-500 bg-opacity-30 h-2 w-full rounded mt-1"></div></div>
+                                <div class="calendar-day p-2 relative bg-cyan-400 bg-opacity-30" data-date="2026-08-08">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-cyan-500 bg-opacity-40 rounded"></div>
+                                        <div class="absolute bottom-2 left-0 h-3 w-full bg-magenta-500 bg-opacity-40 rounded"></div>
+                                        <div class="absolute bottom-0 left-0 h-2 w-full bg-violet-500 bg-opacity-40 rounded"></div>
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative bg-cyan-400 bg-opacity-40" data-date="2026-08-09">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded opacity-60"></div>
+                                        <div class="absolute bottom-2 left-0 h-3 w-full bg-magenta-500 bg-opacity-40 rounded"></div>
+                                        <div class="absolute bottom-0 left-0 h-2 w-full bg-violet-500 bg-opacity-40 rounded"></div>
+                                    </div>
+                                </div>
+                                <div class="calendar-day p-2 relative bg-gradient-to-br from-cyan-400 to-blue-500 glow-effect" data-date="2026-08-10">
+                                    <div class="relative h-6">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded opacity-80"></div>
+                                        <div class="absolute inset-0 bg-white bg-opacity-20 rounded animate-pulse"></div>
+                                        <div class="absolute bottom-2 left-0 h-3 w-full bg-gradient-to-r from-magenta-400 to-violet-500 rounded opacity-80"></div>
+                                        <div class="absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-violet-400 to-cyan-300 rounded opacity-80"></div>
+                                    </div>
+                                    <div class="absolute inset-0 border border-white border-opacity-30 rounded-lg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Animation View -->
+            <div id="timelineView" class="view">
+                <div class="glassmorphism rounded-xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Animierte Verlaufsansicht</h2>
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                        <div class="flex items-center gap-4 mb-4 md:mb-0">
+                            <button id="playBtn" class="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg text-white font-medium hover:from-violet-600 hover:to-purple-700 transition-all">
+                                ▶️ Play
+                            </button>
+                            <button id="pauseBtn" class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg text-white font-medium hover:from-gray-600 hover:to-gray-700 transition-all">
+                                ⏸️ Pause
+                            </button>
+                            <button id="resetBtn" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 rounded-lg text-white font-medium hover:from-red-600 hover:to-red-700 transition-all">
+                                🔄 Reset
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm">Geschwindigkeit:</span>
+                            <select id="speedSelect" class="px-3 py-2 bg-white bg-opacity-10 rounded-lg text-white border border-white border-opacity-20">
+                                <option value="1">1x</option>
+                                <option value="2">2x</option>
+                                <option value="4">4x</option>
+                            </select>
+                        </div>
+                        <div id="timeDisplay" class="text-sm font-mono">01.04.2026</div>
+                    </div>
+
+                    <div class="relative h-80 overflow-hidden">
+                        <!-- Timeline background -->
+                        <div class="absolute top-8 left-0 w-full h-1 bg-gray-600"></div>
+                        <div class="absolute top-0 left-0 w-full h-16 flex justify-between text-xs text-gray-400 px-2">
+                            <span>01.04.</span>
+                            <span>15.04.</span>
+                            <span>01.05.</span>
+                            <span>15.05.</span>
+                            <span>01.06.</span>
+                            <span>15.06.</span>
+                            <span>01.07.</span>
+                            <span>15.07.</span>
+                            <span>01.08.</span>
+                            <span>10.08.</span>
+                        </div>
+
+                        <!-- Timeline cursor -->
+                        <div id="timelineCursor" class="absolute top-4 left-0 w-0.5 h-8 bg-cyan-400 timeline-cursor"></div>
+
+                        <!-- Projects timeline -->
+                        <div class="absolute top-16 space-y-4 w-full">
+                            <!-- Opportunity HUB goes ARENA HUB -->
+                            <div class="relative project-timeline" data-project="0">
+                                <div class="absolute top-0 left-0 flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-cyan-400 mr-2"></div>
+                                    <span class="text-sm font-medium">Opportunity HUB goes ARENA HUB</span>
+                                </div>
+                                <div class="absolute top-0 left-0 h-4 w-full bg-gray-700 rounded">
+                                    <div id="projectBar0" class="h-full bg-gradient-to-r from-violet-400 to-cyan-400 rounded opacity-0 transition-all duration-300 glow-effect"></div>
+                                </div>
+                            </div>
+
+                            <!-- ARENA Hub reloaded -->
+                            <div class="relative project-timeline" data-project="1">
+                                <div class="absolute top-0 left-0 flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-magenta-400 to-violet-400 mr-2"></div>
+                                    <span class="text-sm font-medium">ARENA Hub reloaded</span>
+                                </div>
+                                <div class="absolute top-0 left-0 h-4 w-full bg-gray-700 rounded">
+                                    <div id="projectBar1" class="h-full bg-gradient-to-r from-magenta-400 to-violet-400 rounded opacity-0 transition-all duration-300 glow-effect"></div>
+                                </div>
+                            </div>
+
+                            <!-- Opportunity Hub -->
+                            <div class="relative project-timeline" data-project="2">
+                                <div class="absolute top-0 left-0 flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-400 mr-2"></div>
+                                    <span class="text-sm font-medium">Opportunity Hub</span>
+                                </div>
+                                <div class="absolute top-0 left-0 h-4 w-full bg-gray-700 rounded">
+                                    <div id="projectBar2" class="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded opacity-0 transition-all duration-300 glow-effect"></div>
+                                </div>
+                            </div>
+
+                            <!-- ARENA Hub -->
+                            <div class="relative project-timeline" data-project="3">
+                                <div class="absolute top-0 left-0 flex items-center">
+                                    <div class="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 mr-2"></div>
+                                    <span class="text-sm font-medium">ARENA Hub</span>
+                                </div>
+                                <div class="absolute top-0 left-0 h-4 w-full bg-gray-700 rounded">
+                                    <div id="projectBar3" class="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded opacity-0 transition-all duration-300"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today marker -->
+                        <div id="todayMarker" class="absolute top-4 right-0 transform translate-x-1/2">
+                            <div class="w-0.5 h-8 bg-cyan-400 timeline-cursor opacity-0"></div>
+                            <div class="absolute -top-2.5 left-1/2 transform -translate-x-1/2 text-xs bg-cyan-400 text-gray-900 px-2 py-0.5 rounded">Heute</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Project data
+        const projects = [
+            {
+                "start": "2026-07-14",
+                "end": "2026-08-10",
+                "name": "Opportunity HUB goes ARENA HUB",
+                "topics": ["Agentic SLDC – Claude", "Setup Brownfield", "Vorgehensmodell"],
+                "team": ["Tobias Torkler", "Michael Umov"]
+            },
+            {
+                "start": "2026-07-06",
+                "end": "2026-08-10",
+                "name": "ARENA Hub reloaded",
+                "topics": ["Agentic SLDC – Claude", "GitOps"],
+                "team": ["Thomas Fritsche (PO)", "Dominik Jacob", "Joey Rösner", "Jessy Osei", "Sascha Dederer"]
+            },
+            {
+                "start": "2026-05-27",
+                "end": "2026-08-10",
+                "name": "Opportunity Hub",
+                "topics": ["Agentic SLDC – Claude", "GitOps", "Hop-on / Hop-off"],
+                "team": ["Sören Wohlers (PO)", "Jan Prien", "Sebastian Frick", "Alexis Cerna", "Sulan Abubakarov", "Florian Hagen", "Thomas Fritsche"]
+            },
+            {
+                "start": "2026-04-07",
+                "end": "2026-04-30",
+                "name": "ARENA Hub",
+                "topics": ["Klassische Webapp – Frontend: Angular", "Backend: Spring Boot"],
+                "team": ["Thorsten Rodenhäuser (PO)", "Max Semdner", "Florian Hagen", "Jan Prien", "Sascha Dederer", "Mohamed Mukhtar"]
+            }
+        ];
+
+        // Date utility functions
+        const parseDate = (dateStr) => {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        };
+
+        const formatDate = (date) => {
+            return date.toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).replace(/\./g, '.').replace(' ', '');
+        };
+
+        // Today's date
+        const today = parseDate('2026-08-10');
+        document.getElementById('todayDate').textContent = formatDate(today);
+
+        // Calculate total timeline duration (April 1 to August 10, 2026)
+        const timelineStart = parseDate('2026-04-01');
+        const timelineEnd = parseDate('2026-08-10');
+        const totalDays = (timelineEnd - timelineStart) / (1000 * 60 * 60 * 24);
+
+        // View switching
+        const views = document.querySelectorAll('.view');
+        const viewButtons = document.querySelectorAll('.view-btn');
+
+        viewButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetView = button.dataset.view;
+
+                // Update active button
+                viewButtons.forEach(btn => btn.classList.remove('active', 'bg-white', 'text-gray-900'));
+                viewButtons.forEach(btn => btn.classList.add('text-gray-300'));
+                button.classList.add('active', 'bg-white', 'text-gray-900');
+                button.classList.remove('text-gray-300');
+
+                // Hide all views
+                views.forEach(view => view.classList.remove('active'));
+
+                // Show target view with fade in
+                const targetViewElement = document.getElementById(`${targetView}View`);
+                targetViewElement.classList.add('active');
+
+                // Special handling for timeline view
+                if (targetView === 'timeline') {
+                    resetTimelineAnimation();
+                }
+            });
+        });
+
+        // Initialize Gantt view
+        function initializeGantt() {
+            const ganttBars = document.querySelectorAll('.gantt-bar');
+
+            ganttBars.forEach((bar, index) => {
+                const project = projects[index];
+                const start = parseDate(project.start);
+                const end = parseDate(project.end);
+
+                const projectDuration = (end - start) / (1000 * 60 * 60 * 24);
+                const widthPercentage = (projectDuration / totalDays) * 100;
+                bar.style.width = `${widthPercentage}%`;
+
+                // Add tooltip
+                const ganttElement = bar.closest('.project-gantt');
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip absolute z-20 -top-2 left-1/2 transform -translate-x-1/2 w-80 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs hidden group-hover:block';
+                tooltip.innerHTML = `
+                    <div class="font-semibold">${project.name}</div>
+                    <div class="mt-1">${formatDate(start)} – ${formatDate(end)}</div>
+                    <div class="mt-2">Themen: ${project.topics.join(', ')}</div>
+                    <div class="mt-2">Team: ${project.team.join(', ')}</div>
+                `;
+                ganttElement.classList.add('group');
+                ganttElement.appendChild(tooltip);
+            });
+        }
+
+        // Initialize Calendar view
+        function initializeCalendar() {
+            // Mark project days
+            projects.forEach((project, projectIndex) => {
+                const start = parseDate(project.start);
+                const end = parseDate(project.end);
+
+                for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                    const dateStr = formatDate(new Date(date));
+                    const dayElement = document.querySelector(`.calendar-day[data-date="${dateStr}"]`);
+
+                    if (dayElement) {
+                        // Create color stripe based on project
+                        const stripe = document.createElement('div');
+                        stripe.className = 'absolute bottom-0 left-0 h-2 w-full rounded';
+
+                        if (projectIndex === 0) {
+                            stripe.classList.add('bg-gradient-to-r', 'from-violet-400', 'to-cyan-400');
+                        } else if (projectIndex === 1) {
+                            stripe.classList.add('bg-gradient-to-r', 'from-magenta-400', 'to-violet-400');
+                            stripe.style.height = '3px';
+                            stripe.style.bottom = '2px';
+                        } else if (projectIndex === 2) {
+                            stripe.classList.add('bg-gradient-to-r', 'from-cyan-400', 'to-blue-400');
+                            stripe.style.height = '6px';
+                        } else if (projectIndex === 3) {
+                            stripe.classList.add('bg-gradient-to-r', 'from-purple-400', 'to-pink-400');
+                        }
+
+                        // Add tooltip if not already present
+                        if (!dayElement.querySelector('.tooltip')) {
+                            const tooltip = document.createElement('div');
+                            tooltip.className = 'tooltip absolute z-20 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 px-3 py-2 bg-black bg-opacity-80 rounded-lg text-xs';
+                            dayElement.appendChild(tooltip);
+                            dayElement.classList.add('group');
+                        }
+
+                        // Update tooltip content
+                        const tooltip = dayElement.querySelector('.tooltip');
+                        if (tooltip) {
+                            let currentContent = tooltip.innerHTML;
+                            const projectName = projectIndex === 3 && date.toDateString() === end.toDateString() ?
+                                `${project.name} (Ende)` : project.name;
+
+                            if (currentContent.includes(projectName)) {
+                                // Project already listed
+                            } else {
+                                const separator = currentContent ? '<br>' : '';
+                                currentContent += `${separator}<span class="inline-block bg-${getProjectColor(projectIndex)}-500 bg-opacity-30 px-2 py-0.5 rounded mt-1">${projectName}</span>`;
+                                tooltip.innerHTML = currentContent;
+                            }
+                        }
+
+                        dayElement.appendChild(stripe);
+                    }
+                }
+            });
+
+            // Highlight today
+            const todayElement = document.querySelector(`.calendar-day[data-date="10.08.2026"]`);
+            if (todayElement) {
+                todayElement.classList.add('glow-effect');
+            }
+        }
+
+        function getProjectColor(projectIndex) {
+            const colors = ['violet', 'magenta', 'cyan', 'purple'];
+            return colors[projectIndex];
+        }
+
+        // Timeline animation
+        let animationId = null;
+        let isPlaying = false;
+        let currentDate = new Date(timelineStart);
+        let speed = 1;
+
+        function updateTimeline() {
+            if (!isPlaying) return;
+
+            // Update current date
+            const daysToAdd = speed;
+            currentDate.setDate(currentDate.getDate() + daysToAdd);
+
+            // Stop if we've reached or passed today
+            if (currentDate > today) {
+                currentDate = new Date(today);
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = '▶️ Play';
+            }
+
+            // Update display
+            document.getElementById('timeDisplay').textContent = formatDate(currentDate);
+
+            // Calculate cursor position (0 = start, 1 = end)
+            const progress = (currentDate - timelineStart) / (today - timelineStart);
+            const cursorPosition = progress * 100;
+
+            // Update cursor
+            const cursor = document.getElementById('timelineCursor');
+            cursor.style.left = `${cursorPosition}%`;
+
+            // Update today marker visibility
+            const todayMarker = document.getElementById('todayMarker');
+            if (currentDate >= today) {
+                todayMarker.style.opacity = '1';
+            }
+
+            // Update project bars
+            projects.forEach((project, index) => {
+                const start = parseDate(project.start);
+                const end = parseDate(project.end);
+                const bar = document.getElementById(`projectBar${index}`);
+
+                if (currentDate >= start) {
+                    if (currentDate >= end) {
+                        // Project completed
+                        bar.style.width = '100%';
+                        bar.style.opacity = '1';
+
+                        // Remove glow effect for completed projects
+                        if (index !== 3) {
+                            bar.classList.remove('glow-effect');
+                        }
+                    } else {
+                        // Project in progress
+                        const progress = (currentDate - start) / (end - start);
+                        bar.style.width = `${progress * 100}%`;
+                        bar.style.opacity = '1';
+
+                        // Add glow effect for current progress
+                        if (index !== 3) {
+                            bar.classList.add('glow-effect');
+                        }
+                    }
+                }
+            });
+
+            // Continue animation
+            if (currentDate < today) {
+                animationId = requestAnimationFrame(updateTimeline);
+            }
+        }
+
+        function playTimeline() {
+            if (!isPlaying) {
+                isPlaying = true;
+                document.getElementById('playBtn').textContent = '⏹️ Stop';
+                updateTimeline();
+            }
+        }
+
+        function pauseTimeline() {
+            isPlaying = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            document.getElementById('playBtn').textContent = '▶️ Play';
+        }
+
+        function resetTimelineAnimation() {
+            pauseTimeline();
+            currentDate = new Date(timelineStart);
+            document.getElementById('timeDisplay').textContent = formatDate(currentDate);
+
+            const cursor = document.getElementById('timelineCursor');
+            cursor.style.left = '0%';
+
+            const todayMarker = document.getElementById('todayMarker');
+            todayMarker.style.opacity = '0';
+
+            projects.forEach((project, index) => {
+                const bar = document.getElementById(`projectBar${index}`);
+                bar.style.width = '0%';
+                bar.style.opacity = '0';
+                bar.classList.remove('glow-effect');
+            });
+
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = '▶️ Play';
+        }
+
+        // Event listeners for timeline controls
+        document.getElementById('playBtn').addEventListener('click', playTimeline);
+        document.getElementById('pauseBtn').addEventListener('click', pauseTimeline);
+        document.getElementById('resetBtn').addEventListener('click', resetTimelineAnimation);
+
+        document.getElementById('speedSelect').addEventListener('change', (e) => {
+            speed = parseInt(e.target.value);
+        });
+
+        // Download functionality
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            // Create a copy of the current document
+            const htmlContent = document.documentElement.outerHTML;
+
+            // Create download link
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'project-timeline-dashboard.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Initialize all views
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGantt();
+            initializeCalendar();
+            resetTimelineAnimation();
+
+            // Add tooltips to cards
+            const cards = document.querySelectorAll('.project-card');
+            cards.forEach(card => {
+                const projectIndex = parseInt(card.dataset.project);
+                const project = projects[projectIndex];
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip absolute -top-2 -right-2 bg-black bg-opacity-80 text-white text-xs px-3 py-2 rounded-lg z-20';
+                tooltip.textContent = `Projekt Nr. ${projectIndex + 1}`;
+                card.appendChild(tooltip);
+                card.classList.add('group');
+            });
+        });
+    </script>
+</body>
+</html>
