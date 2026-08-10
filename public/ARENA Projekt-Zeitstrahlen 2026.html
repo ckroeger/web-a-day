@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projekt-Zeitstrahl 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 font-sans text-slate-100 selection:bg-cyan-400/30">
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-3xl"></div>
+        <div class="absolute right-[-120px] top-40 h-[420px] w-[420px] rounded-full bg-fuchsia-500/20 blur-3xl"></div>
+        <div class="absolute bottom-[-160px] left-[-80px] h-[520px] w-[520px] rounded-full bg-indigo-500/20 blur-3xl"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-[size:44px_44px]"></div>
+    </div>
+
+    <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-2xl">
+        <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200 shadow-lg shadow-cyan-950/30">
+                        <span class="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_16px_rgba(110,231,183,0.95)]"></span>
+                        Projektportfolio 2026
+                    </div>
+                    <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+                        Gantt- & Zeitstrahl-Dashboard
+                    </h1>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
+                        Maßstabsgetreue Darstellung aller Projekte im Zeitraum
+                        <span class="font-semibold text-cyan-200">07.04.2026 bis 10.08.2026</span> —
+                        laufende Projekte enden visuell am heutigen Marker.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[460px]">
+                    <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/30 backdrop-blur-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400">Projekte</p>
+                        <p id="metricProjects" class="mt-1 text-2xl font-black text-white">5</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/30 backdrop-blur-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400">Laufend</p>
+                        <p id="metricOngoing" class="mt-1 text-2xl font-black text-emerald-300">4</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-xl shadow-slate-950/30 backdrop-blur-xl">
+                        <p class="text-xs uppercase tracking-widest text-slate-400">Achse</p>
+                        <p class="mt-1 text-2xl font-black text-cyan-200">126</p>
+                    </div>
+                    <div class="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 shadow-xl shadow-cyan-950/30 backdrop-blur-xl">
+                        <p class="text-xs uppercase tracking-widest text-cyan-100/80">Heute</p>
+                        <p class="mt-1 text-lg font-black text-white">10.08.2026</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/10 p-2 shadow-2xl shadow-slate-950/30 backdrop-blur-2xl sm:flex-row" aria-label="Ansichten">
+                <button data-tab="gantt" class="tab-button flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition duration-300">
+                    <span class="text-lg">▰</span>
+                    Gantt-Ansicht
+                </button>
+                <button data-tab="swimlanes" class="tab-button flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition duration-300">
+                    <span class="text-lg">☰</span>
+                    Swimlanes
+                </button>
+                <button data-tab="cards" class="tab-button flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition duration-300">
+                    <span class="text-lg">◇</span>
+                    Projektkarten
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <section class="mb-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+            <div class="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-2xl">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 class="text-xl font-black text-white">Portfolio-Zeitraum</h2>
+                        <p class="mt-1 text-sm text-slate-300">
+                            Gesamtachse: <span class="font-semibold text-cyan-200">07.04.2026</span> bis
+                            <span class="font-semibold text-cyan-200">10.08.2026</span>. Balkenpositionen und Längen werden proportional berechnet.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200">
+                            <span class="h-2 w-2 rounded-full bg-emerald-300"></span>Laufend bis heute
+                        </span>
+                        <span class="inline-flex items-center gap-2 rounded-full border border-slate-300/20 bg-slate-300/10 px-3 py-1.5 text-xs font-bold text-slate-200">
+                            <span class="h-2 w-2 rounded-full bg-slate-300"></span>Abgeschlossen
+                        </span>
+                        <span class="inline-flex items-center gap-2 rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-bold text-fuchsia-200">
+                            <span class="h-2 w-2 rounded-full bg-fuchsia-300 shadow-[0_0_16px_rgba(240,171,252,0.95)]"></span>Heute-Marker
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-2xl">
+                <h2 class="text-xl font-black text-white">Sortierung</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-300">
+                    Neueste Projekte erscheinen zuerst. Die Liste ist absteigend nach Startdatum sortiert und enthält ausschließlich Projekte aus 2026.
+                </p>
+            </div>
+        </section>
+
+        <section id="view-gantt" class="view-section">
+            <div class="overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 shadow-2xl shadow-slate-950/40 backdrop-blur-2xl">
+                <div class="border-b border-white/10 bg-gradient-to-r from-cyan-400/10 via-indigo-400/10 to-fuchsia-400/10 p-5">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <h2 class="text-2xl font-black text-white">1) Gantt-Ansicht mit maßstabsgetreuen Balken</h2>
+                            <p class="mt-1 text-sm text-slate-300">Alle Projekte auf einer gemeinsamen Achse — Balken starten und enden proportional zum Datum.</p>
+                        </div>
+                        <div class="rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/10 px-4 py-2 text-sm font-bold text-fuchsia-100">
+                            Heute: 10.08.2026
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <div class="min-w-[980px] p-5">
+                        <div class="grid grid-cols-[300px_1fr] gap-4">
+                            <div class="pt-10 text-xs font-bold uppercase tracking-widest text-slate-400">Projekt</div>
+                            <div>
+                                <div id="ganttAxisLabels" class="relative mb-3 h-8"></div>
+                                <div class="relative h-4 rounded-full border border-white/10 bg-slate-900/70">
+                                    <div class="absolute inset-y-0 left-0 w-full rounded-full bg-gradient-to-r from-cyan-400/30 via-indigo-400/30 to-fuchsia-400/30"></div>
+                                    <div id="ganttTodayTop" class="absolute -top-2 h-8 w-0.5 bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,0.95)]"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="ganttRows" class="mt-5 space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-swimlanes" class="view-section hidden">
+            <div class="overflow-hidden rounded-[2rem] border border-white/10 bg-white/10 shadow-2xl shadow-slate-950/40 backdrop-blur-2xl">
+                <div class="border-b border-white/10 bg-gradient-to-r from-indigo-400/10 via-cyan-400/10 to-emerald-400/10 p-5">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <h2 class="text-2xl font-black text-white">2) Parallele Zeitstrahlen / Swimlanes</h2>
+                            <p class="mt-1 text-sm text-slate-300">Projekte nach inhaltlichen Schwerpunkten gruppiert — alle Lanes teilen dieselbe Zeitachse.</p>
+                        </div>
+                        <div class="rounded-2xl border border-fuchsia-300/20 bg-fuchsia-300/10 px-4 py-2 text-sm font-bold text-fuchsia-100">
+                            Heute: 10.08.2026
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <div class="min-w-[980px] p-5">
+                        <div class="grid grid-cols-[260px_1fr] gap-4">
+                            <div class="pt-10 text-xs font-bold uppercase tracking-widest text-slate-400">Swimlane</div>
+                            <div>
+                                <div id="swimAxisLabels" class="relative mb-3 h-8"></div>
+                                <div class="relative h-4 rounded-full border border-white/10 bg-slate-900/70">
+                                    <div class="absolute inset-y-0 left-0 w-full rounded-full bg-gradient-to-r from-indigo-400/30 via-cyan-400/30 to-emerald-400/30"></div>
+                                    <div id="swimTodayTop" class="absolute -top-2 h-8 w-0.5 bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,0.95)]"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="swimRows" class="mt-5 space-y-5"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-cards" class="view-section hidden">
+            <div class="rounded-[2rem] border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/40 backdrop-blur-2xl">
+                <div class="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <h2 class="text-2xl font-black text-white">3) Kompakte Projektkarten-Ansicht</h2>
+                        <p class="mt-1 text-sm text-slate-300">Zeitraum, Thema und Teilnehmer schnell erfassbar — neueste Projekte zuerst.</p>
+                    </div>
+                    <div class="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm font-bold text-cyan-100">
+                        2026 · 5 Projekte
+                    </div>
+                </div>
+
+                <div id="cardsGrid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const data = {
+            today: "2026-08-10",
+            axisStart: "2026-04-07",
+            axisEnd: "2026-08-10",
+            projects: [
+                {
+                    start: "2026-08-03",
+                    end: "2026-08-10",
+                    ongoing: true,
+                    name: "Legacy Updating + Upskilling",
+                    topics: ["Alte Javaprojekte modernisieren + Upskilling"],
+                    people: ["Jörn Bilicki (PO)", "Gunnar Kempke", "Dirk Gessele"]
+                },
+                {
+                    start: "2026-07-14",
+                    end: "2026-08-10",
+                    ongoing: true,
+                    name: "Opportunitiy HUB goes ARENA HUB",
+                    topics: ["Agentic SLDC", "Claude", "Setup Brownfield", "Vorgehensmodell"],
+                    people: ["Tobias Torkler", "Michael Umov"]
+                },
+                {
+                    start: "2026-07-06",
+                    end: "2026-08-10",
+                    ongoing: true,
+                    name: "ARENA Hub reloaded",
+                    topics: ["Agentic SLDC", "Claude", "GitOps"],
+                    people: ["Thomas Fritsche (PO)", "Dominik Jacob", "Joey Rösner", "Jessy Osei", "Sascha Dederer"]
+                },
+                {
+                    start: "2026-05-27",
+                    end: "2026-08-10",
+                    ongoing: true,
+                    name: "Opportunity Hub 👉",
+                    topics: ["Agentic SLDC", "Claude", "GitOps", "Hop-on / Hop-off"],
+                    people: ["Sören Wohlers (PO)", "Jan Prien", "Sebastian Frick", "Alexis Cerna", "Sulan Abubakarov", "Florian Hagen", "Thomas Fritsche"]
+                },
+                {
+                    start: "2026-04-07",
+                    end: "2026-04-30",
+                    ongoing: false,
+                    name: "ARENA Hub",
+                    topics: ["Klassische Webapp", "Frontend: Angular", "Backend: Spring Boot"],
+                    people: ["Thorsten Rodenhäuser (PO)", "Max Semdner", "Florian Hagen", "Jan Prien", "Sascha Dederer", "Mohamed Mukhtar"]
+                }
+            ]
+        };
+
+        const MS_DAY = 24 * 60 * 60 * 1000;
+        const axisStart = parseDate(data.axisStart);
+        const axisEnd = parseDate(data.axisEnd);
+        const today = parseDate(data.today);
+        const totalMs = axisEnd - axisStart;
+        const totalDaysInclusive = Math.round((axisEnd - axisStart) / MS_DAY) + 1;
+
+        const palette = [
+            {
+                bar: "from-cyan-300 via-blue-400 to-indigo-500",
+                glow: "shadow-cyan-500/30",
+                ring: "border-cyan-300/30",
+                chip: "bg-cyan-300/10 text-cyan-100 border-cyan-300/20"
+            },
+            {
+                bar: "from-fuchsia-300 via-pink-400 to-rose-500",
+                glow: "shadow-fuchsia-500/30",
+                ring: "border-fuchsia-300/30",
+                chip: "bg-fuchsia-300/10 text-fuchsia-100 border-fuchsia-300/20"
+            },
+            {
+                bar: "from-emerald-300 via-teal-400 to-cyan-500",
+                glow: "shadow-emerald-500/30",
+                ring: "border-emerald-300/30",
+                chip: "bg-emerald-300/10 text-emerald-100 border-emerald-300/20"
+            },
+            {
+                bar: "from-amber-200 via-orange-400 to-red-500",
+                glow: "shadow-orange-500/30",
+                ring: "border-orange-300/30",
+                chip: "bg-orange-300/10 text-orange-100 border-orange-300/20"
+            },
+            {
+                bar: "from-violet-300 via-purple-400 to-indigo-500",
+                glow: "shadow-violet-500/30",
+                ring: "border-violet-300/30",
+                chip: "bg-violet-300/10 text-violet-100 border-violet-300/20"
+            }
+        ];
+
+        const projects = data.projects
+            .filter(project => project.start.startsWith("2026") && project.end.startsWith("2026"))
+            .sort((a, b) => parseDate(b.start) - parseDate(a.start))
+            .map((project, index) => ({
+                ...project,
+                color: palette[index % palette.length],
+                duration: Math.round((parseDate(project.end) - parseDate(project.start)) / MS_DAY) + 1
+            }));
+
+        document.getElementById("metricProjects").textContent = projects.length;
+        document.getElementById("metricOngoing").textContent = projects.filter(project => project.ongoing).length;
+
+        function parseDate(value) {
+            const parts = value.split("-").map(Number);
+            return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+        }
+
+        function formatDate(value) {
+            const date = typeof value === "string" ? parseDate(value) : value;
+            return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(date);
+        }
+
+        function percentForDate(value) {
+            const date = typeof value === "string" ? parseDate(value) : value;
+            return Math.max(0, Math.min(100, ((date - axisStart) / totalMs) * 100));
+        }
+
+        function rangeStyle(project) {
+            const left = percentForDate(project.start);
+            const width = Math.max(1.2, ((parseDate(project.end) - parseDate(project.start)) / totalMs) * 100);
+            return `left:${left}%;width:${width}%;`;
+        }
+
+        function createElement(tag, className, text) {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            if (text !== undefined) element.textContent = text;
+            return element;
+        }
+
+        function buildAxis(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            const ticks = [
+                { label: "07. Apr", date: "2026-04-07" },
+                { label: "01. Mai", date: "2026-05-01" },
+                { label: "01. Jun", date: "2026-06-01" },
+                { label: "01. Jul", date: "2026-07-01" },
+                { label: "01. Aug", date: "2026-08-01" },
+                { label: "Heute", date: data.today, highlight: true }
+            ];
+
+            ticks.forEach(tick => {
+                const position = percentForDate(tick.date);
+                const wrapper = createElement("div", "absolute top-0 flex -translate-x-1/2 flex-col items-center gap-1");
+                wrapper.style.left = `${position}%`;
+
+                const label = createElement("div", tick.highlight ? "rounded-full bg-fuchsia-300 px-2 py-0.5 text-[11px] font-black text-slate-950 shadow-lg shadow-fuchsia-500/40" : "text-[11px] font-bold text-slate-300", tick.label);
+                const line = createElement("div", tick.highlight ? "h-3 w-0.5 bg-fuchsia-300" : "h-3 w-px bg-white/20");
+
+                if (position > 96) {
+                    wrapper.classList.remove("-translate-x-1/2");
+                    wrapper.classList.add("-translate-x-full");
+                }
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(line);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function createTooltip(project) {
+            const tooltip = createElement("div", "pointer-events-none absolute bottom-full left-1/2 z-30 mb-3 hidden w-80 -translate-x-1/2 rounded-2xl border border-white/15 bg-slate-950/95 p-4 text-left shadow-2xl shadow-slate-950/60 backdrop-blur-xl group-hover:block");
+            const title = createElement("p", "text-sm font-black text-white", project.name);
+            const dates = createElement("p", "mt-1 text-xs font-bold text-cyan-200", `${formatDate(project.start)} – ${formatDate(project.end)} · ${project.duration} Tage${project.ongoing ? " · laufend" : ""}`);
+            const topics = createElement("p", "mt-3 text-xs leading-5 text-slate-300", "Themen: " + project.topics.join(" · "));
+            const people = createElement("p", "mt-2 text-xs leading-5 text-slate-300", "Teilnehmer: " + project.people.join(", "));
+            const arrow = createElement("div", "absolute left-1/2 top-full h-3 w-3 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r border-white/15 bg-slate-950/95");
+            tooltip.appendChild(title);
+            tooltip.appendChild(dates);
+            tooltip.appendChild(topics);
+            tooltip.appendChild(people);
+            tooltip.appendChild(arrow);
+            return tooltip;
+        }
+
+        function buildGantt() {
+            buildAxis("ganttAxisLabels");
+            document.getElementById("ganttTodayTop").style.left = `${percentForDate(today)}%`;
+            const rows = document.getElementById("ganttRows");
+            rows.innerHTML = "";
+
+            projects.forEach(project => {
+                const row = createElement("article", "grid grid-cols-[300px_1fr] gap-4 rounded-3xl border border-white/10 bg-slate-900/35 p-4 transition duration-300 hover:border-cyan-300/30 hover:bg-white/10");
+
+                const info = createElement("div", "pr-2");
+                const status = createElement("div", project.ongoing ? "mb-2 inline-flex rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-widest text-emerald-200" : "mb-2 inline-flex rounded-full border border-slate-300/20 bg-slate-300/10 px-2.5 py-1 text-[11px] font-black uppercase tracking-widest text-slate-200", project.ongoing ? "Laufend" : "Abgeschlossen");
+                const name = createElement("h3", "text-base font-black leading-tight text-white", project.name);
+                const date = createElement("p", "mt-1 text-xs font-bold text-cyan-200", `${formatDate(project.start)} – ${formatDate(project.end)}`);
+                const topics = createElement("p", "mt-2 line-clamp-2 text-xs leading-5 text-slate-300", project.topics.join(" · "));
+                const people = createElement("p", "mt-2 text-xs font-semibold text-slate-400", `${project.people.length} Teilnehmer`);
+                info.appendChild(status);
+                info.appendChild(name);
+                info.appendChild(date);
+                info.appendChild(topics);
+                info.appendChild(people);
+
+                const timeline = createElement("div", "relative min-h-[108px] overflow-visible rounded-2xl border border-white/10 bg-slate-950/45");
+                timeline.innerHTML = `
+                    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.10)_1px,transparent_1px)] bg-[size:20%_100%]"></div>
+                    <div class="absolute inset-y-0 w-0.5 bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,0.95)]" style="left:${percentForDate(today)}%"></div>
+                `;
+
+                const bar = createElement("div", `group absolute top-1/2 flex h-12 -translate-y-1/2 items-center rounded-full bg-gradient-to-r ${project.color.bar} px-4 shadow-2xl ${project.color.glow} ring-1 ring-white/30 transition duration-300 hover:scale-[1.015] hover:shadow-[0_0_32px_rgba(34,211,238,0.35)]`);
+                bar.style.cssText = rangeStyle(project);
+                const barText = createElement("div", "min-w-0 truncate text-sm font-black text-white drop-shadow", project.name);
+                bar.appendChild(barText);
+                bar.appendChild(createTooltip(project));
+
+                timeline.appendChild(bar);
+                row.appendChild(info);
+                row.appendChild(timeline);
+                rows.appendChild(row);
+            });
+        }
+
+        function laneForProject(project) {
+            if (project.topics.some(topic => topic.includes("modernisieren") || topic.includes("Upskilling"))) return "Modernisierung & Upskilling";
+            if (project.topics.some(topic => topic.includes("Klassische Webapp"))) return "Klassische Webapp";
+            return "Agentic SLDC / Hub-Initiativen";
+        }
+
+        function buildSwimlanes() {
+            buildAxis("swimAxisLabels");
+            document.getElementById("swimTodayTop").style.left = `${percentForDate(today)}%`;
+            const rows = document.getElementById("swimRows");
+            rows.innerHTML = "";
+
+            const laneNames = ["Modernisierung & Upskilling", "Agentic SLDC / Hub-Initiativen", "Klassische Webapp"];
+            laneNames.forEach(laneName => {
+                const laneProjects = projects.filter(project => laneForProject(project) === laneName);
+                const lane = createElement("article", "grid grid-cols-[260px_1fr] gap-4 rounded-3xl border border-white/10 bg-slate-900/35 p-4 transition duration-300 hover:border-indigo-300/30 hover:bg-white/10");
+
+                const label = createElement("div", "flex flex-col justify-center");
+                const title = createElement("h3", "text-base font-black text-white", laneName);
+                const count = createElement("p", "mt-2 text-xs font-bold uppercase tracking-widest text-slate-400", `${laneProjects.length} Projekt${laneProjects.length === 1 ? "" : "e"}`);
+                label.appendChild(title);
+                label.appendChild(count);
+
+                const timeline = createElement("div", "relative min-h-[150px] overflow-visible rounded-2xl border border-white/10 bg-slate-950/45 p-3");
+                timeline.innerHTML = `
+                    <div class="absolute inset-0 rounded-2xl bg-[linear-gradient(to_right,rgba(255,255,255,0.10)_1px,transparent_1px)] bg-[size:20%_100%]"></div>
+                    <div class="absolute inset-y-0 z-10 w-0.5 bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,0.95)]" style="left:${percentForDate(today)}%"></div>
+                `;
+
+                if (laneProjects.length === 0) {
+                    const empty = createElement("div", "relative z-20 flex h-full min-h-[90px] items-center justify-center rounded-2xl border border-dashed border-white/10 text-sm text-slate-500", "Keine Projekte in dieser Lane");
+                    timeline.appendChild(empty);
+                } else {
+                    laneProjects.forEach((project, index) => {
+                        const bar = createElement("div", `group absolute z-20 flex h-10 items-center rounded-2xl bg-gradient-to-r ${project.color.bar} px-3 shadow-xl ${project.color.glow} ring-1 ring-white/25 transition duration-300 hover:scale-[1.015]`);
+                        bar.style.cssText = `${rangeStyle(project)} top:${18 + index * 44}px;`;
+                        const text = createElement("span", "truncate text-xs font-black text-white drop-shadow", project.name);
+                        bar.appendChild(text);
+                        bar.appendChild(createTooltip(project));
+                        timeline.appendChild(bar);
+                    });
+                }
+
+                lane.appendChild(label);
+                lane.appendChild(timeline);
+                rows.appendChild(lane);
+            });
+        }
+
+        function buildCards() {
+            const grid = document.getElementById("cardsGrid");
+            grid.innerHTML = "";
+
+            projects.forEach((project, index) => {
+                const card = createElement("article", `group relative overflow-hidden rounded-[1.75rem] border ${project.color.ring} bg-white/10 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/[0.14]`);
+                card.innerHTML = `
+                    <div class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br ${project.color.bar} opacity-20 blur-2xl transition duration-300 group-hover:opacity-40"></div>
+                    <div class="relative">
+                        <div class="mb-4 flex items-center justify-between gap-3">
+                            <span class="inline-flex rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-widest ${project.ongoing ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200" : "border-slate-300/20 bg-slate-300/10 text-slate-200"}">
+                                ${project.ongoing ? "Laufend bis heute" : "Abgeschlossen"}
+                            </span>
+                            <span class="text-xs font-bold text-slate-400">#${String(index + 1).padStart(2, "0")}</span>
+                        </div>
+                        <h3 class="text-xl font-black leading-tight text-white">${escapeHtml(project.name)}</h3>
+                        <div class="mt-4 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Zeitraum</p>
+                            <p class="mt-1 text-sm font-black text-cyan-100">${formatDate(project.start)} – ${formatDate(project.end)}</p>
+                            <p class="mt-1 text-xs text-slate-400">${project.duration} Tage innerhalb der Achse</p>
+                        </div>
+                        <div class="mt-4">
+                            <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Themen</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${project.topics.map(topic => `<span class="rounded-full border px-3 py-1 text-xs font-bold ${project.color.chip}">${escapeHtml(topic)}</span>`).join("")}
+                            </div>
+                        </div>
+                        <div class="mt-5">
+                            <p class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400">Teilnehmer</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${project.people.map(person => `<span class="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">${escapeHtml(person)}</span>`).join("")}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function setActiveTab(tabName) {
+            document.querySelectorAll(".tab-button").forEach(button => {
+                const active = button.dataset.tab === tabName;
+                button.className = active
+                    ? "tab-button flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-300 to-fuchsia-300 px-4 py-3 text-sm font-black text-slate-950 shadow-lg shadow-cyan-950/30 transition duration-300"
+                    : "tab-button flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-slate-300 transition duration-300 hover:bg-white/10 hover:text-white";
+            });
+
+            document.querySelectorAll(".view-section").forEach(section => section.classList.add("hidden"));
+            const activeSection = document.getElementById(`view-${tabName}`);
+            if (activeSection) activeSection.classList.remove("hidden");
+        }
+
+        function init() {
+            try {
+                buildGantt();
+                buildSwimlanes();
+                buildCards();
+                setActiveTab("gantt");
+
+                document.querySelectorAll(".tab-button").forEach(button => {
+                    button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+                });
+            } catch (error) {
+                console.error("Fehler beim Rendern des Projekt-Dashboards:", error);
+                const main = document.querySelector("main");
+                const errorBox = createElement("div", "rounded-3xl border border-red-300/20 bg-red-500/10 p-5 text-red-100", "Die Visualisierung konnte nicht geladen werden. Bitte prüfen Sie die Projektdaten.");
+                main.prepend(errorBox);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

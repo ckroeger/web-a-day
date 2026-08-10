@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webseiten-Archiv</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="bundle.js" defer></script>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      :root {
+        --bg-1: #f6efe7;
+        --bg-2: #eaf6f2;
+        --bg-3: #f1ecff;
+        --text: #1f1f23;
+        --muted: #5a6270;
+        --card: rgba(255, 255, 255, 0.74);
+        --stroke: rgba(255, 255, 255, 0.55);
+        --accent-1: #ff7a59;
+        --accent-2: #00a89d;
+        --shadow: 0 18px 40px rgba(31, 31, 35, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 15% 20%, var(--bg-3) 0%, transparent 35%),
+          radial-gradient(circle at 85% 10%, #dffaf6 0%, transparent 28%),
+          radial-gradient(circle at 50% 80%, #ffe7d7 0%, transparent 40%),
+          linear-gradient(140deg, var(--bg-1), var(--bg-2));
+        background-attachment: fixed;
+      }
+
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 64px 20px 48px;
+      }
+
+      .hero {
+        position: relative;
+        margin-bottom: 28px;
+        padding: 28px;
+        border-radius: 24px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.62));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        letter-spacing: 0.02em;
+      }
+
+      .subtitle {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: clamp(0.95rem, 2vw, 1.12rem);
+      }
+
+      .archive-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .archive-link {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        background: var(--card);
+        box-shadow: 0 8px 18px rgba(18, 18, 22, 0.08);
+        transform: translateY(0) scale(1);
+        transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+
+      .archive-link::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255, 122, 89, 0.18), rgba(0, 168, 157, 0.16));
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+
+      .archive-link span,
+      .archive-link strong {
+        position: relative;
+        z-index: 1;
+      }
+
+      .archive-link strong {
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+
+      .archive-link:hover,
+      .archive-link:focus-visible {
+        transform: translateY(-2px) scale(1.004);
+        box-shadow: 0 12px 25px rgba(18, 18, 22, 0.14);
+        border-color: rgba(255, 122, 89, 0.5);
+        outline: none;
+      }
+
+      .archive-link:hover::before,
+      .archive-link:focus-visible::before {
+        opacity: 1;
+      }
+
+      .back {
+        display: inline-block;
+        margin-top: 26px;
+        color: #0f5f5a;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .back:hover,
+      .back:focus-visible {
+        text-decoration: underline;
+        outline: none;
+      }
+
+      @media (max-width: 600px) {
+        .page {
+          padding-top: 40px;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+
+        .archive-link {
+          padding: 14px 14px;
+          font-size: 0.96rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="menu-container"></div>
+    <script>
+      // Load the menu.html content into the menu-container div
+      fetch("menu.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("menu-container").innerHTML = data;
+        })
+        .catch((error) => console.error("Error loading menu:", error));
+    </script>
+    <main class="page">
+      <section class="hero">
+        <h1>Webseiten-Archiv</h1>
+        <p class="subtitle">Schneller Zugriff auf alle aktuellen HTML-Seiten in diesem Projekt.</p>
+      </section>
+
+      <section class="archive-grid" aria-label="Webseiten Liste">
+        <a class="archive-link" href="ARENA Dashboard.html"><span>ARENA Dashboard</span><strong>+</strong></a>
+        <a class="archive-link" href="ARENA Projekt-Zeitstrahlen 2026.html"><span>ARENA Projekt-Zeitstrahlen 2026</span><strong>+</strong></a>
+        <a class="archive-link" href="Interactive Project Timeline Dashboard.html"><span>Interactive Project Timeline Dashboard</span><strong>+</strong></a>
+        <a class="archive-link" href="Projekt-Timeline Dashboard 2026.html"><span>Projekt-Timeline Dashboard 2026</span><strong>+</strong></a>
+        <a class="archive-link" href="arena_opportunity_dashboard_2026.html"><span>Arena Opportunity Dashboard 2026</span><strong>+</strong></a>
+        <a class="archive-link" href="project_timeline_dashboard.html"><span>Project Timeline Dashboard</span><strong>+</strong></a>
+      </section>
+
+      <a class="back" href="index.html">Zurueck zur Startseite</a>
+    </main>
+  </body>
+</html>
