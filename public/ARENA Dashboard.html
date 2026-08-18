@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,9 +14,10 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
+
         body {
             background-color: var(--bg);
-            background-image: 
+            background-image:
                 radial-gradient(circle at 15% 20%, rgba(161, 140, 209, 0.15) 0%, transparent 40%),
                 radial-gradient(circle at 85% 80%, rgba(0, 242, 254, 0.15) 0%, transparent 40%);
             background-attachment: fixed;
@@ -26,7 +28,11 @@
             min-height: 100vh;
             box-sizing: border-box;
         }
-        * { box-sizing: inherit; }
+
+        * {
+            box-sizing: inherit;
+        }
+
         .glass-panel {
             background: var(--glass);
             backdrop-filter: blur(16px);
@@ -35,6 +41,7 @@
             border-radius: 16px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -44,6 +51,7 @@
             flex-wrap: wrap;
             gap: 16px;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
@@ -52,20 +60,23 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .header h1 span {
             font-weight: 300;
             background: #fff;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .tabs {
             display: flex;
             gap: 8px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             padding: 6px;
             border-radius: 12px;
             overflow-x: auto;
         }
+
         .tab {
             background: transparent;
             border: none;
@@ -77,11 +88,13 @@
             font-weight: 600;
             white-space: nowrap;
         }
+
         .tab.active {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
         .btn-download {
             background: linear-gradient(135deg, #f093fb, #f5576c);
             color: #fff;
@@ -96,17 +109,37 @@
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
         }
+
         .btn-download:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
         }
-        .btn-download svg { width: 16px; height: 16px; fill: currentColor; }
-        
-        .view { display: none; animation: fadeIn 0.4s ease; }
-        .view.active { display: block; }
+
+        .btn-download svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Timeline / Gantt */
@@ -117,11 +150,16 @@
             padding: 40px 0;
             overflow: hidden;
         }
+
         .timeline-grid {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             display: flex;
         }
+
         .timeline-month {
             flex: 1;
             border-left: 1px solid var(--border);
@@ -130,20 +168,32 @@
             font-size: 12px;
             padding-top: 12px;
         }
+
         .today-line {
             position: absolute;
-            top: 0; bottom: 0;
+            top: 0;
+            bottom: 0;
             width: 2px;
             background: #00f2fe;
             z-index: 10;
             box-shadow: 0 0 15px #00f2fe;
             animation: pulseGlow 2s infinite;
         }
+
         @keyframes pulseGlow {
-            0% { box-shadow: 0 0 5px #00f2fe; }
-            50% { box-shadow: 0 0 20px #00f2fe; }
-            100% { box-shadow: 0 0 5px #00f2fe; }
+            0% {
+                box-shadow: 0 0 5px #00f2fe;
+            }
+
+            50% {
+                box-shadow: 0 0 20px #00f2fe;
+            }
+
+            100% {
+                box-shadow: 0 0 5px #00f2fe;
+            }
         }
+
         .today-label {
             position: absolute;
             top: 12px;
@@ -155,16 +205,19 @@
             font-weight: 800;
             transform: translateX(-50%);
         }
+
         .tracks-container {
             position: relative;
             margin-top: 40px;
             z-index: 5;
         }
+
         .track {
             position: relative;
             height: 60px;
             margin-bottom: 20px;
         }
+
         .bar {
             position: absolute;
             height: 40px;
@@ -180,9 +233,14 @@
             transition: transform 0.2s;
             overflow: hidden;
             white-space: nowrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
-        .bar:hover { transform: scale(1.02); z-index: 20; }
+
+        .bar:hover {
+            transform: scale(1.02);
+            z-index: 20;
+        }
+
         .bar.ongoing {
             border-top-right-radius: 0;
             border-bottom-right-radius: 0;
@@ -196,6 +254,7 @@
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 24px;
         }
+
         .card {
             padding: 24px;
             display: flex;
@@ -203,30 +262,110 @@
             gap: 16px;
             transition: transform 0.3s, box-shadow 0.3s;
         }
+
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .card-header h3 { margin: 0; font-size: 18px; line-height: 1.3; }
-        .status { font-size: 10px; padding: 4px 8px; border-radius: 12px; font-weight: 800; text-transform: uppercase; }
-        .status.ongoing { background: rgba(0, 242, 254, 0.2); color: #00f2fe; }
-        .status.completed { background: rgba(161, 140, 209, 0.2); color: #a18cd1; }
-        .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-        .tag { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 16px; font-size: 11px; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .status.ongoing {
+            background: rgba(0, 242, 254, 0.2);
+            color: #00f2fe;
+        }
+
+        .status.completed {
+            background: rgba(161, 140, 209, 0.2);
+            color: #a18cd1;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 11px;
+        }
 
         /* List */
-        .list-table-container { overflow-x: auto; }
-        .list-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 800px; }
-        .list-table th { padding: 16px; border-bottom: 1px solid var(--border); color: #94a3b8; font-size: 14px; }
-        .list-table td { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
-        .list-table tr:hover { background: rgba(255,255,255,0.02); }
+        .list-table-container {
+            overflow-x: auto;
+        }
+
+        .list-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 800px;
+        }
+
+        .list-table th {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .list-table td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: top;
+        }
+
+        .list-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
 
         /* Calendar */
-        .calendar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-        .month-block { padding: 16px; }
-        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
-        .day-header { text-align: center; font-size: 11px; color: #64748b; margin-bottom: 4px; }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .month-block {
+            padding: 16px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
         .day-cell {
             aspect-ratio: 1;
             display: flex;
@@ -235,31 +374,116 @@
             font-size: 11px;
             padding: 4px;
             border-radius: 6px;
-            background: rgba(255,255,255,0.03);
+            background: rgba(255, 255, 255, 0.03);
             cursor: pointer;
             transition: background 0.2s;
         }
-        .day-cell:hover { background: rgba(255,255,255,0.1); }
+
+        .day-cell:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         .day-cell.today {
             border: 1px solid #00f2fe;
             box-shadow: 0 0 10px rgba(0, 242, 254, 0.4) inset, 0 0 10px rgba(0, 242, 254, 0.4);
             background: rgba(0, 242, 254, 0.1);
         }
-        .day-indicator { width: 100%; height: 4px; border-radius: 2px; margin-top: 2px; }
+
+        .day-indicator {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 2px;
+        }
 
         /* Playback */
-        .playback-controls { display: flex; flex-wrap: wrap; gap: 12px; padding: 16px; align-items: center; margin-bottom: 24px; }
-        .btn { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
-        .btn:hover { background: rgba(255,255,255,0.2); }
-        .btn.primary { background: #00f2fe; color: #000; border: none; }
-        .pb-cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; z-index: 20; box-shadow: 0 0 15px 2px #fff; pointer-events: none; }
-        .pb-trail { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: #fff; border-radius: 4px; }
-        .pb-callout { position: absolute; bottom: 100%; left: 10px; margin-bottom: 8px; padding: 8px 12px; font-size: 12px; color: #fff; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 30; border-left: 3px solid #fff; background: rgba(15,20,35,0.9); border-radius: 4px; }
+        .playback-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn.primary {
+            background: #00f2fe;
+            color: #000;
+            border: none;
+        }
+
+        .pb-cursor {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #fff;
+            z-index: 20;
+            box-shadow: 0 0 15px 2px #fff;
+            pointer-events: none;
+        }
+
+        .pb-trail {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .pb-callout {
+            position: absolute;
+            bottom: 100%;
+            left: 10px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 30;
+            border-left: 3px solid #fff;
+            background: rgba(15, 20, 35, 0.9);
+            border-radius: 4px;
+        }
 
         /* Tooltip */
-        .tooltip { position: absolute; pointer-events: none; z-index: 1000; background: rgba(15, 20, 35, 0.95); padding: 12px 16px; border-radius: 8px; font-size: 13px; color: #fff; opacity: 0; transition: opacity 0.1s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); max-width: 300px; }
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1000;
+            background: rgba(15, 20, 35, 0.95);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.1s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 300px;
+        }
     </style>
 </head>
+
 <body>
     <div class="header glass-panel">
         <h1>ARENA <span>Dashboard</span></h1>
@@ -271,7 +495,9 @@
             <button class="tab" data-target="view-playback">Playback</button>
         </nav>
         <button class="btn-download" onclick="downloadDashboard()">
-            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <svg viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+            </svg>
             Download HTML
         </button>
     </div>
@@ -301,37 +527,40 @@
 
     <script>
         // Data Basis
+        const today = new Date();
         const projects = [
-            { id: "p1", name: "Opportunity HUB goes ARENA HUB", start: new Date("2026-07-14T00:00:00"), end: new Date("2026-08-10T23:59:59"), ongoing: true, themen: ["Agentic SLDC", "Claude", "Setup Brownfield", "Vorgehensmodell"], wer: ["Tobias Torkler", "Michael Umov"], color: "#00f2fe" },
-            { id: "p2", name: "ARENA Hub reloaded", start: new Date("2026-07-06T00:00:00"), end: new Date("2026-08-10T23:59:59"), ongoing: true, themen: ["Agentic SLDC", "Claude", "GitOps"], wer: ["Thomas Fritsche (PO)", "Dominik Jacob", "Joey Rösner", "Jessy Osei", "Sascha Dederer"], color: "#4facfe" },
-            { id: "p3", name: "Opportunity Hub", start: new Date("2026-05-27T00:00:00"), end: new Date("2026-08-10T23:59:59"), ongoing: true, themen: ["Agentic SLDC", "Claude", "GitOps", "Hop-on / Hop-off"], wer: ["Sören Wohlers (PO)", "Jan Prien", "Sebastian Frick", "Alexis Cerna", "Sulan Abubakarov", "Florian Hagen", "Thomas Fritsche"], color: "#f093fb" },
-            { id: "p4", name: "ARENA Hub", start: new Date("2026-04-07T00:00:00"), end: new Date("2026-04-30T23:59:59"), ongoing: false, themen: ["Klassische Webapp", "Frontend: Angular", "Backend: Spring Boot"], wer: ["Thorsten Rodenhäuser (PO)", "Max Semdner", "Florian Hagen", "Jan Prien", "Sascha Dederer", "Mohamed Mukhtar"], color: "#a18cd1" }
+            { id: "p1", name: "ARENA Insurance", start: new Date("2026-08-03T00:00:00"), end: today, ongoing: true, themen: ["GitOps", "DevOps", "SecOps", "Kubernetes", "IAC"], wer: ["Sven Mahncke", "Sebastian Frick"], color: "#7dd3fc" },
+            { id: "p2", name: "ARENA BiPRO2GDV", start: new Date("2026-08-03T00:00:00"), end: today, ongoing: true, themen: ["BiPRO", "GDV", "Spring Batch", "OpenRecipe", "Upskilling"], wer: ["Dirk Gessele", "Gunnar Kempke", "Jörn Bilicki (PO)"], color: "#34d399" },
+            { id: "p3", name: "Opportunity HUB goes ARENA HUB", start: new Date("2026-07-14T00:00:00"), end: today, ongoing: true, themen: ["Agentic SLDC", "Claude", "Setup Brownfield", "Vorgehensmodell"], wer: ["Tobias Torkler", "Michael Umov"], color: "#00f2fe" },
+            { id: "p4", name: "ARENA Hub reloaded", start: new Date("2026-07-06T00:00:00"), end: today, ongoing: true, themen: ["Agentic SLDC", "Claude", "GitOps"], wer: ["Thomas Fritsche (PO)", "Dominik Jacob", "Joey Rösner", "Jessy Osei", "Sascha Dederer"], color: "#4facfe" },
+            { id: "p5", name: "Opportunity Hub", start: new Date("2026-05-27T00:00:00"), end: today, ongoing: true, themen: ["Agentic SLDC", "Claude", "GitOps", "Hop-on / Hop-off"], wer: ["Sören Wohlers (PO)", "Jan Prien", "Sebastian Frick", "Alexis Cerna", "Sulan Abubakarov", "Florian Hagen", "Thomas Fritsche"], color: "#f093fb" },
+            { id: "p6", name: "ARENA Hub", start: new Date("2026-04-07T00:00:00"), end: new Date("2026-04-30T23:59:59"), ongoing: false, themen: ["Klassische Webapp", "Frontend: Angular", "Backend: Spring Boot"], wer: ["Thorsten Rodenhäuser (PO)", "Max Semdner", "Florian Hagen", "Jan Prien", "Sascha Dederer", "Mohamed Mukhtar"], color: "#a18cd1" }
         ];
 
         // Timeline Constants
         const tsStart = new Date("2026-04-01T00:00:00").getTime();
         const tsEnd = new Date("2026-08-31T23:59:59").getTime();
         const tsTotal = tsEnd - tsStart;
-        const todayDate = new Date("2026-08-10T12:00:00");
+        const todayDate = new Date("2026-08-11T16:00:00");
         const months = [{ y: 2026, m: 3, name: "April" }, { y: 2026, m: 4, name: "Mai" }, { y: 2026, m: 5, name: "Juni" }, { y: 2026, m: 6, name: "Juli" }, { y: 2026, m: 7, name: "August" }];
 
         // Helpers
         function getPos(date) { return ((date.getTime() - tsStart) / tsTotal) * 100; }
-        function formatDate(d) { return d.toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: 'numeric'}); }
+        function formatDate(d) { return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
         const tooltipsData = {};
 
         // 1. Gantt View
         function renderGantt() {
             let html = '<div class="glass-panel timeline-wrapper"><div class="timeline-grid">';
             months.forEach(m => html += `<div class="timeline-month">${m.name}</div>`);
-            html += `</div><div class="today-line" style="left: ${getPos(todayDate)}%"><div class="today-label">Heute (10.08)</div></div><div class="tracks-container">`;
-            
+            html += `</div><div class="today-line" style="left: ${getPos(todayDate)}%"><div class="today-label">Heute (11.08)</div></div><div class="tracks-container">`;
+
             projects.forEach((p, i) => {
                 const left = getPos(p.start);
                 const width = getPos(p.end) - left;
                 const tId = 'tt_gantt_' + i;
                 tooltipsData[tId] = `<div style="margin-bottom:8px"><strong style="color:${p.color}">${p.name}</strong><br><span style="font-size:11px; color:#aaa;">${formatDate(p.start)} - ${p.ongoing ? 'Heute' : formatDate(p.end)}</span><br><br><strong style="font-size:11px;">Themen:</strong><br><span style="font-size:11px; color:#aaa;">${p.themen.join(', ')}</span><br><br><strong style="font-size:11px;">Team:</strong><br><span style="font-size:11px; color:#aaa;">${p.wer.join(', ')}</span></div>`;
-                
+
                 html += `
                     <div class="track">
                         <div class="bar ${p.ongoing ? 'ongoing' : ''}" style="left: ${left}%; width: ${width}%; background: ${p.color};" data-tt="${tId}">
@@ -397,28 +626,28 @@
             let html = '<div class="calendar-grid">';
             months.forEach(month => {
                 html += `<div class="month-block glass-panel"><h3 style="margin-top:0; text-align:center; margin-bottom:12px;">${month.name}</h3><div class="days-grid"><div class="day-header">Mo</div><div class="day-header">Di</div><div class="day-header">Mi</div><div class="day-header">Do</div><div class="day-header">Fr</div><div class="day-header">Sa</div><div class="day-header">So</div>`;
-                
+
                 const daysInMonth = new Date(month.y, month.m + 1, 0).getDate();
                 let startDay = new Date(month.y, month.m, 1).getDay();
                 if (startDay === 0) startDay = 7;
-                
+
                 for (let i = 1; i < startDay; i++) html += `<div></div>`;
-                
+
                 for (let d = 1; d <= daysInMonth; d++) {
                     const current = new Date(month.y, month.m, d, 12, 0, 0);
-                    const isToday = (current.getFullYear() === 2026 && current.getMonth() === 7 && current.getDate() === 10);
+                    const isToday = (current.getFullYear() === 2026 && current.getMonth() === 7 && current.getDate() === 11);
                     const activeProjects = projects.filter(p => current >= p.start && current <= p.end);
-                    
+
                     let indicators = activeProjects.map(p => `<div class="day-indicator" style="background:${p.color}"></div>`).join('');
                     let classes = isToday ? "day-cell today" : "day-cell";
                     let ttAttr = "";
-                    
+
                     if (activeProjects.length > 0) {
                         const tId = `tt_cal_${month.m}_${d}`;
                         tooltipsData[tId] = activeProjects.map(p => `<div style="margin-bottom:8px"><strong style="color:${p.color}">${p.name}</strong><br><span style="font-size:11px; color:#aaa;">${p.themen.join(', ')}</span></div>`).join('');
                         ttAttr = `data-tt="${tId}"`;
                     }
-                    
+
                     html += `<div class="${classes}" ${ttAttr}><span>${d}</span><div style="width:100%; margin-top:2px;">${indicators}</div></div>`;
                 }
                 html += `</div></div>`;
@@ -439,7 +668,7 @@
             months.forEach(m => html += `<div class="timeline-month">${m.name}</div>`);
             html += `</div><div class="today-line" style="left: ${getPos(todayDate)}%"><div class="today-label">Heute (10.08)</div></div>`;
             html += `<div id="pb-cursor" class="pb-cursor" style="left: 0%"></div><div class="tracks-container">`;
-            
+
             projects.forEach(p => {
                 html += `
                     <div class="track">
@@ -458,20 +687,20 @@
         function updatePlaybackUI() {
             const cursor = document.getElementById('pb-cursor');
             cursor.style.left = getPos(new Date(pbTime)) + '%';
-            document.getElementById('pb-date').innerText = new Date(pbTime).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', year: 'numeric'});
-            
+            document.getElementById('pb-date').innerText = new Date(pbTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
             projects.forEach(p => {
                 const bar = document.getElementById(`pb-bar-${p.id}`);
                 const trail = document.getElementById(`pb-trail-${p.id}`);
                 const pStart = p.start.getTime();
                 const pEnd = p.end.getTime();
-                
+
                 if (pbTime >= pStart) {
                     const currentEnd = Math.min(pbTime, pEnd);
                     const widthPct = ((currentEnd - pStart) / tsTotal) * 100;
                     bar.style.width = widthPct + '%';
                     trail.style.display = (pbTime < pEnd) ? 'block' : 'none';
-                    
+
                     // Callouts
                     if (pbTime < pEnd && !activeCallouts[p.id]) {
                         showCallout(p);
@@ -490,11 +719,11 @@
             const callout = document.createElement('div');
             callout.className = 'pb-callout';
             callout.style.borderColor = p.color;
-            callout.innerHTML = `<strong style="color:${p.color}">${p.name}</strong><br><span style="font-size:10px">${p.wer[0]} & ${p.wer.length-1} weitere</span>`;
+            callout.innerHTML = `<strong style="color:${p.color}">${p.name}</strong><br><span style="font-size:10px">${p.wer[0]} & ${p.wer.length - 1} weitere</span>`;
             bar.appendChild(callout);
             setTimeout(() => callout.style.opacity = 1, 50);
             setTimeout(() => {
-                if(callout && callout.parentNode) {
+                if (callout && callout.parentNode) {
                     callout.style.opacity = 0;
                     setTimeout(() => callout.remove(), 300);
                 }
@@ -505,18 +734,18 @@
             if (!isPlaying) return;
             const delta = time - lastFrameTime;
             lastFrameTime = time;
-            
+
             const speed = parseInt(document.getElementById('sel-speed').value);
             const msPerDayRealTime = 100; // 100ms = 1 day
             const daysPassed = (delta / msPerDayRealTime) * speed;
-            
+
             pbTime += daysPassed * 24 * 60 * 60 * 1000;
-            
+
             if (pbTime >= todayDate.getTime()) {
                 pbTime = todayDate.getTime();
                 isPlaying = false;
             }
-            
+
             updatePlaybackUI();
             if (isPlaying) pbAnimId = requestAnimationFrame(playbackLoop);
         }
@@ -532,7 +761,7 @@
             isPlaying = false;
             pbTime = tsStart;
             document.querySelectorAll('.pb-callout').forEach(e => e.remove());
-            for(let k in activeCallouts) activeCallouts[k] = false;
+            for (let k in activeCallouts) activeCallouts[k] = false;
             updatePlaybackUI();
         });
 
@@ -557,7 +786,7 @@
             renderList();
             renderCalendar();
             initPlayback();
-            
+
             // Tabs setup
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -592,4 +821,5 @@
         });
     </script>
 </body>
+
 </html>
