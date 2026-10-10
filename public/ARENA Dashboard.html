@@ -541,7 +541,9 @@
         const tsStart = new Date("2026-04-01T00:00:00").getTime();
         const tsEnd = new Date("2026-08-31T23:59:59").getTime();
         const tsTotal = tsEnd - tsStart;
-        const todayDate = new Date("2026-08-11T16:00:00");
+        //const todayDate = new Date("2026-08-18T16:00:00");
+        const todayDate = new Date();
+        
         const months = [{ y: 2026, m: 3, name: "April" }, { y: 2026, m: 4, name: "Mai" }, { y: 2026, m: 5, name: "Juni" }, { y: 2026, m: 6, name: "Juli" }, { y: 2026, m: 7, name: "August" }];
 
         // Helpers
@@ -553,7 +555,7 @@
         function renderGantt() {
             let html = '<div class="glass-panel timeline-wrapper"><div class="timeline-grid">';
             months.forEach(m => html += `<div class="timeline-month">${m.name}</div>`);
-            html += `</div><div class="today-line" style="left: ${getPos(todayDate)}%"><div class="today-label">Heute (11.08)</div></div><div class="tracks-container">`;
+            html += `</div><div class="today-line" style="left: ${getPos(todayDate)}%"><div class="today-label">Heute (18.08)</div></div><div class="tracks-container">`;
 
             projects.forEach((p, i) => {
                 const left = getPos(p.start);
@@ -635,7 +637,7 @@
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const current = new Date(month.y, month.m, d, 12, 0, 0);
-                    const isToday = (current.getFullYear() === 2026 && current.getMonth() === 7 && current.getDate() === 11);
+                    const isToday = (current.getFullYear() === 2026 && current.getMonth() === 7 && current.getDate() === 18);
                     const activeProjects = projects.filter(p => current >= p.start && current <= p.end);
 
                     let indicators = activeProjects.map(p => `<div class="day-indicator" style="background:${p.color}"></div>`).join('');
