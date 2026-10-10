@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Clock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #333333;
+            --text-color: #cccccc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Courier New', Courier, monospace;
+            transition: background-color 0.4s ease;
+            overflow: hidden;
+        }
+
+        /* ── Settings Panel ── */
+        #settings-panel {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            padding: 20px 28px 16px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            white-space: nowrap;
+        }
+
+        #settings-panel.open {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #settings-panel label {
+            color: #aaa;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+        }
+
+        #settings-panel input[type="color"] {
+            width: 38px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 2px;
+            background: #333;
+        }
+
+        #toggle-format {
+            background: #333;
+            color: #ccc;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 5px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            font-family: inherit;
+            letter-spacing: 0.05em;
+        }
+        #toggle-format:hover { background: #555; color: #fff; }
+
+        /* ── Gear Button ── */
+        #gear-btn {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            width: 44px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 101;
+            transition: background 0.2s;
+            line-height: 1;
+            color: #aaa;
+        }
+        #gear-btn:hover { background: #333; color: #fff; }
+        #gear-btn.active { background: #444; }
+        #gear-btn .gear-icon {
+            display: inline-block;
+            transition: transform 0.5s ease;
+        }
+        #gear-btn.active .gear-icon {
+            transform: rotate(60deg);
+        }
+
+        /* ── Clock Layout ── */
+        #clock {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            user-select: none;
+        }
+
+        .digit-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .separator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 10px;
+            padding-bottom: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-color);
+            transition: background-color 0.4s;
+            opacity: 0.7;
+        }
+
+        /* ── Flip Card ── */
+        .flip-card {
+            --card-w: 72px;
+            --card-h: 100px;
+            --digit-size: 72px;
+            --radius: 6px;
+            /* Flip timing, modelled on FlipClock.js: the upper flap falls 0° → -90° (first half), then the
+               lower flap lands 90° → 0° (second half). Both run LINEAR on purpose: constant angular speed
+               plus the perspective foreshortening already looks naturally eased on screen.
+               --flip-time is the only knob. */
+            --flip-time: 1s;
+            --fall-time: calc(var(--flip-time) * 0.5);
+            --land-time: calc(var(--flip-time) * 0.5);
+            --shade-time: calc(var(--flip-time) * 0.5);
+
+            position: relative;
+            width: var(--card-w);
+            height: var(--card-h);
+            /* Vanishing point = card centre = hinge line, so the flaps swing towards the viewer.
+               Close camera (≈ 2.2 × card height) = the strong 3D look of a real flip clock */
+            perspective: calc(var(--card-h) * 2.2);
+            border-radius: var(--radius);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+        }
+        /* A swinging flap sticks out sideways: keep it in front of the neighbouring cards */
+        .flip-card.flipping { z-index: 2; }
+
+        /* ── Shared half styles ── */
+        .upper, .lower, .flip-upper, .flip-lower {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background-color: var(--card-color);
+            transition: background-color 0.4s;
+        }
+
+        /* Static halves, sit behind the flaps.
+           While flipping: .upper = NEW top half, .lower = OLD bottom half */
+        .upper {
+            top: 0;
+            border-radius: var(--radius) var(--radius) 0 0;
+            z-index: 1;
+        }
+        .lower {
+            bottom: 0;
+            border-radius: 0 0 var(--radius) var(--radius);
+            z-index: 1;
+        }
+
+        /* Flaps, only visible while flipping.
+           .flip-upper = OLD top half (falls away), .flip-lower = NEW bottom half (lands on .lower) */
+        .flip-upper, .flip-lower {
+            visibility: hidden;
+            z-index: 3;
+            will-change: transform;
+        }
+        .flip-upper {
+            top: 0;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transform-origin: 50% 100%;
+        }
+        .flip-lower {
+            bottom: 0;
+            border-radius: 0 0 var(--radius) var(--radius);
+            transform-origin: 50% 0;
+            transform: rotateX(90deg);
+        }
+        /* The upper flap shows from the first frame; the lower flap is switched on by its own
+           'flapShow' animation (see below), not merely by its 90° pose */
+        .flip-card.flipping .flip-upper {
+            visibility: visible;
+        }
+
+        /* ── Digit text inside each half ── */
+        .digit {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            /* Full card height in both halves, so top and bottom cut the very same glyph */
+            height: var(--card-h);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--digit-size);
+            font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.4s;
+            line-height: 1;
+            text-shadow: 0 1px 2px #000;
+        }
+        .upper .digit, .flip-upper .digit { top: 0; }     /* top half of the glyph */
+        .lower .digit, .flip-lower .digit { bottom: 0; }  /* bottom half of the glyph */
+
+        /* Hinge line between the two halves */
+        .seam {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(50% - 1px);
+            height: 2px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* Shading, faded in/out with opacity (gradients themselves can't be animated).
+           Fades to black at the hinge. */
+        .shadow-overlay {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .upper .shadow-overlay,
+        .flip-upper .shadow-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), #000);
+        }
+        .lower .shadow-overlay,
+        .flip-lower .shadow-overlay {
+            background: linear-gradient(to bottom, #000, rgba(0,0,0,0.1));
+        }
+
+        /* Shine on the upper halves */
+        .upper::after,
+        .flip-upper::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+            pointer-events: none;
+        }
+
+        /* ── Animations ── */
+        @keyframes flapFall {
+            from { transform: rotateX(0deg);   }
+            to   { transform: rotateX(-90deg); }
+        }
+        @keyframes flapLand {
+            from { transform: rotateX(90deg); }
+            to   { transform: rotateX(0deg);  }
+        }
+        /* Explicit on/off for the flaps. Relying on "rotated 90° = invisible" is not enough: Firefox can
+           draw a delayed flap untransformed (= the NEW lower half far too early) in the first frames.
+           Kept in their own animations so the transform animations stay purely compositor driven. */
+        @keyframes flapShow { from { visibility: hidden;  } to { visibility: visible; } }
+        @keyframes flapHide { from { visibility: visible; } to { visibility: hidden;  } }
+        @keyframes shadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes shadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Phase 1: the old top flap falls forward, the old bottom half darkens under it,
+           the new top half is uncovered behind it and brightens up a little later */
+        .flip-card.flipping .flip-upper {
+            animation: flapFall var(--fall-time) linear forwards,
+                       flapHide 1ms linear var(--fall-time) forwards;
+        }
+        .flip-card.flipping .flip-upper .shadow-overlay,
+        .flip-card.flipping .lower .shadow-overlay {
+            animation: shadeIn var(--shade-time) linear forwards;
+        }
+        .flip-card.flipping .upper .shadow-overlay {
+            animation: shadeOut var(--shade-time) linear calc(var(--flip-time) * 0.3) both;
+        }
+
+        /* Phase 2: the new bottom flap (back of the same leaf) swings down onto the old bottom half
+           and is already fully lit well before it lands */
+        .flip-card.flipping .flip-lower {
+            animation: flapLand var(--land-time) linear var(--fall-time) both,
+                       flapShow 1ms linear var(--fall-time) both;
+        }
+        .flip-card.flipping .flip-lower .shadow-overlay {
+            animation: shadeOut var(--shade-time) linear calc(var(--flip-time) * 0.2) both;
+        }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .flip-card { --card-w: 46px; --card-h: 64px; --digit-size: 46px; }
+            .dot { width: 5px; height: 5px; }
+            .separator { padding: 0 5px; gap: 7px; }
+            .digit-group { gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Gear Button -->
+<button id="gear-btn" title="Settings">
+    <span class="gear-icon">⚙️</span>
+</button>
+
+<!-- Settings Panel -->
+<div id="settings-panel">
+    <label>
+        Background
+        <input type="color" id="bg-picker" value="#121212">
+    </label>
+    <label>
+        Card Color
+        <input type="color" id="card-picker" value="#333333">
+    </label>
+    <label>
+        Digit Color
+        <input type="color" id="text-picker" value="#cccccc">
+    </label>
+    <label>
+        Format
+        <button id="toggle-format">24h</button>
+    </label>
+</div>
+
+<!-- Clock -->
+<div id="clock">
+    <div class="digit-group" id="group-hours"></div>
+    <div class="separator">
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+    <div class="digit-group" id="group-minutes"></div>
+    <div class="separator">
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+    <div class="digit-group" id="group-seconds"></div>
+</div>
+
+<script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    let is24h = true;
+    const groups = ['group-hours','group-minutes','group-seconds'];
+    const cards = [];
+    let tickTimer = null;
+
+    // ── Build Cards ────────────────────────────────────────────────────────────
+    function buildCard(groupId) {
+        const group = document.getElementById(groupId);
+        const el = document.createElement('div');
+        el.className = 'flip-card';
+        el.innerHTML = `
+            <div class="upper"><div class="digit"></div><div class="shadow-overlay"></div></div>
+            <div class="lower"><div class="digit"></div><div class="shadow-overlay"></div></div>
+            <div class="flip-upper"><div class="digit"></div><div class="shadow-overlay"></div></div>
+            <div class="flip-lower"><div class="digit"></div><div class="shadow-overlay"></div></div>
+            <div class="seam"></div>
+        `;
+        group.appendChild(el);
+
+        const card = {
+            el,
+            value: null,        // digit currently shown (null = not rendered yet)
+            flipping: false,
+            timer: null,        // ends the running flip (see setDigit)
+            upper:     el.querySelector('.upper .digit'),
+            lower:     el.querySelector('.lower .digit'),
+            flipUpper: el.querySelector('.flip-upper .digit'),
+            flipLower: el.querySelector('.flip-lower .digit'),
+        };
+        return card;
+    }
+
+    // Build all 6 cards
+    groups.forEach((gId) => {
+        for (let d = 0; d < 2; d++) {
+            cards.push(buildCard(gId));
+        }
+    });
+
+    // ── Get Time Digits ────────────────────────────────────────────────────────
+    function getTimeDigits() {
+        const now = new Date();
+        let h = now.getHours();
+        const m = now.getMinutes();
+        const s = now.getSeconds();
+
+        if (!is24h) {
+            h = h % 12 || 12;
+        }
+
+        const pad = n => String(n).padStart(2, '0');
+        const str = pad(h) + pad(m) + pad(s);
+        return str.split('');
+    }
+
+    // ── Flip Card ──────────────────────────────────────────────────────────────
+    // Same digit on all four faces, flaps put away (idle state)
+    function showStatic(card, value) {
+        card.upper.textContent     = value;
+        card.lower.textContent     = value;
+        card.flipUpper.textContent = value;
+        card.flipLower.textContent = value;
+    }
+
+    // Ends a running flip right away: the halves already show the current digit.
+    // A flip lasts as long as the clock ticks, so a late 'animationend' of the previous flip could hit the
+    // next one and cut it short (new digit pops up in the lower half). Hence a cancelable timer, no events.
+    function settleCard(card) {
+        if (!card.flipping) return;
+        clearTimeout(card.timer);
+        card.flipping = false;
+        card.el.classList.remove('flipping');
+        showStatic(card, card.value);
+    }
+
+    function setDigit(card, value, animate) {
+        // Snapping always ends a running flip; a new flip never starts on top of a running one
+        if (!animate || card.value !== value) settleCard(card);
+        if (card.value === value) return;
+
+        const old = card.value;
+        card.value = value;
+
+        if (!animate || old === null) {
+            showStatic(card, value);
+            return;
+        }
+
+        // Like the real mechanism:
+        //  - the NEW top half lies under the old top flap and is uncovered as that flap falls
+        //  - the OLD bottom half stays until the new bottom flap lands on it
+        card.upper.textContent     = value;   // uncovered while the old top flap falls
+        card.lower.textContent     = old;     // stays until the new bottom flap covers it
+        card.flipUpper.textContent = old;     // face of the falling flap
+        card.flipLower.textContent = value;   // back of the same flap, lands on .lower
+
+        void card.el.offsetWidth;             // flush styles so the animations restart cleanly
+        card.flipping = true;
+        card.el.classList.add('flipping');
+        // the landed flap holds its last pose (fill-mode) until this puts everything away
+        card.timer = setTimeout(() => settleCard(card), flipDuration(card.el) + 50);
+    }
+
+    // --flip-time from the CSS ("1s" / "800ms") in milliseconds
+    function flipDuration(el) {
+        const t = getComputedStyle(el).getPropertyValue('--flip-time').trim();
+        return (parseFloat(t) * (t.endsWith('ms') ? 1 : 1000)) || 1000;
+    }
+
+    // ── Update Clock ──────────────────────────────────────────────────────────
+    function updateClock(animate) {
+        getTimeDigits().forEach((digit, i) => setDigit(cards[i], digit, animate));
+    }
+
+    // Tick on the real second boundary. A plain setInterval(…, 1000) starts at an arbitrary
+    // phase and drifts, so the display lags behind the actual second and now and then skips one.
+    function scheduleTick() {
+        clearTimeout(tickTimer);
+        tickTimer = setTimeout(() => {
+            updateClock(!document.hidden);
+            scheduleTick();
+        }, 1000 - (Date.now() % 1000));
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    updateClock(false);
+    scheduleTick();
+
+    // Background tabs throttle timers and pause animations: snap to the exact time
+    // when the tab is shown again instead of replaying missed flips.
+    document.addEventListener('visibilitychange', () => {
+        updateClock(false);
+        scheduleTick();
+    });
+
+    // ── Settings Panel ────────────────────────────────────────────────────────
+    const gearBtn    = document.getElementById('gear-btn');
+    const panel      = document.getElementById('settings-panel');
+    const bgPicker   = document.getElementById('bg-picker');
+    const cardPicker = document.getElementById('card-picker');
+    const textPicker = document.getElementById('text-picker');
+    const formatBtn  = document.getElementById('toggle-format');
+    const root       = document.documentElement;
+
+    gearBtn.addEventListener('click', () => {
+        const isOpen = panel.classList.toggle('open');
+        gearBtn.classList.toggle('active', isOpen);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target) && e.target !== gearBtn && !gearBtn.contains(e.target)) {
+            panel.classList.remove('open');
+            gearBtn.classList.remove('active');
+        }
+    });
+
+    bgPicker.addEventListener('input', () => {
+        root.style.setProperty('--bg-color', bgPicker.value);
+        document.body.style.backgroundColor = bgPicker.value;
+    });
+
+    cardPicker.addEventListener('input', () => {
+        root.style.setProperty('--card-color', cardPicker.value);
+    });
+
+    textPicker.addEventListener('input', () => {
+        root.style.setProperty('--text-color', textPicker.value);
+        document.querySelectorAll('.dot').forEach(d => {
+            d.style.backgroundColor = textPicker.value;
+        });
+    });
+
+    formatBtn.addEventListener('click', () => {
+        is24h = !is24h;
+        formatBtn.textContent = is24h ? '24h' : '12h';
+        updateClock(true);
+    });
+</script>
+</body>
+</html>
