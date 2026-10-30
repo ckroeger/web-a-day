@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>CUBE / WORKSPACE — Sechs Seiten. Ein Raum.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Echte räumliche Geometrie; Layout und Gestaltung erfolgen mit Tailwind. Yeah! */
+    .cube-stage { perspective: var(--perspective, 1800px); perspective-origin: 50% 50%; isolation: isolate; }
+    .cube-object { transform-style: preserve-3d; width: var(--side, 100%); height: var(--side, 100%); left: calc((100% - var(--side, 100%)) / 2); top: calc((100% - var(--side, 100%)) / 2); right: auto; bottom: auto; transform: translateZ(calc(-1 * var(--depth, 500px))) rotateX(var(--pitch, 0deg)) rotateY(var(--rotation, 0deg)); transition: transform 750ms cubic-bezier(.22,.75,.2,1); }
+    .cube-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: var(--face-transform, rotateY(var(--face-angle))) translateZ(var(--depth, 500px)); justify-content: center; align-items: center; }
+    .cube-face > div { width: var(--view-width, 100%); height: var(--view-height, 100%); flex: 0 0 auto; }
+    .prompter-track { transform: translate3d(0,var(--scroll-y,0px),0); will-change: transform; }
+    .visual-canvas { display: block; width: 100%; height: 100%; }
+    button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid #5eead4; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .cube-object { transition-duration: 1ms; }
+    }
+  </style>
+</head>
+<body class="h-[100dvh] overflow-hidden bg-slate-950 font-sans text-stone-100 antialiased selection:bg-teal-300/30 selection:text-white">
+<div id="workspace" class="flex h-full min-h-0 flex-col overflow-hidden bg-[#10151f]">
+  <header class="z-20 flex shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-slate-950/80 px-4 py-3 sm:px-7 sm:py-4">
+    <div class="flex min-w-0 items-center gap-3 sm:gap-4">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-teal-300/30 bg-teal-300/10 text-teal-200" aria-hidden="true">
+        <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10M7.5 4.5l9 5v10"/></svg>
+      </div>
+      <div class="min-w-0">
+        <h1 class="whitespace-nowrap text-xs font-semibold tracking-[0.18em] sm:text-sm">CUBE <span class="px-1 text-slate-600">/</span> <span class="text-slate-400">WORKSPACE</span></h1>
+        <div class="mt-1 flex items-center gap-2 text-[11px] text-slate-400"><span class="h-1.5 w-1.5 rounded-full bg-teal-300"></span><span id="headerPage">01 — Eingabemaske</span></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="mr-3 hidden text-[10px] uppercase tracking-[0.2em] text-slate-500 xl:block">Sechs Seiten. Ein Raum.</span>
+      <button id="downloadMd" type="button" class="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-300 transition hover:border-teal-300/40 hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300" title="Deutsche Dokumentation als Markdown herunterladen">
+        <span class="hidden sm:inline">Prinzip als </span>Markdown <span aria-hidden="true">↧</span>
+      </button>
+      <button id="fullscreen" type="button" class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300" aria-label="Vollbild einschalten">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4"/></svg><span class="hidden md:inline" id="fullscreenLabel">Vollbild</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="notice" role="status" class="z-30 hidden shrink-0 items-center justify-between gap-3 border-b border-amber-300/20 bg-amber-950 px-4 py-2 text-xs text-amber-100">
+    <span id="noticeText"></span><button id="dismissNotice" type="button" class="shrink-0 rounded px-2 py-1 hover:bg-white/10" aria-label="Hinweis schließen">✕</button>
+  </div>
+
+  <main id="stage" class="cube-stage relative min-h-0 flex-1 overflow-hidden bg-slate-950" aria-label="Dreidimensionaler Arbeitsbereich">
+    <div id="cube" class="cube-object absolute inset-0">
+      <!-- Seite 01 -->
+      <section id="face0" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border-x border-white/5 bg-[#141b26]" style="--face-angle:0deg" aria-labelledby="title0">
+        <div class="h-full overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto max-w-6xl">
+            <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-teal-300">01 / Der Anfang von etwas Gutem</p>
+                <h2 id="title0" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Ein klarer Plan.<span class="text-slate-500"> Ein guter Start.</span></h2>
+                <p class="mt-2 text-sm text-slate-400">Dein Projektbriefing — direkt hier, ausschließlich auf diesem Gerät.</p>
+              </div>
+              <span class="rounded-full border border-violet-300/20 bg-violet-300/10 px-3 py-1.5 text-[10px] font-medium tracking-wider text-violet-200">MIT DEMO-WERTEN VORBELEGT</span>
+            </div>
+            <form id="briefing" class="pb-3">
+              <div class="grid gap-4 lg:grid-cols-2">
+                <fieldset class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <legend class="sr-only">Projekt</legend>
+                  <div class="mb-4 flex items-center gap-3"><span class="text-xs font-mono text-teal-300">01</span><h3 class="text-sm font-semibold">Projekt</h3><span class="ml-auto text-[10px] text-slate-500">* Pflichtfeld</span></div>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block text-xs text-slate-300 sm:col-span-2">Projektname *<input name="project" required maxlength="160" class="field mt-1.5" placeholder="Wie heißt dein Vorhaben?"></label>
+                    <label class="block text-xs text-slate-300 sm:col-span-2">Kurzbeschreibung<textarea name="description" rows="2" maxlength="3000" class="field mt-1.5 resize-y" placeholder="Ziel, Idee und wichtigste Anforderungen …"></textarea></label>
+                    <label class="block text-xs text-slate-300">Kategorie<select name="category" class="field mt-1.5"><option value="">Bitte wählen</option><option>Digitale Plattform</option><option>Website & Marke</option><option>Interne Anwendung</option><option>Daten & Analyse</option></select></label>
+                    <label class="block text-xs text-slate-300">Status<select name="status" class="field mt-1.5"><option value="">Bitte wählen</option><option>Ideenphase</option><option>In Planung</option><option>In Umsetzung</option><option>Abgeschlossen</option></select></label>
+                  </div>
+                </fieldset>
+                <fieldset class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <legend class="sr-only">Kontakt</legend>
+                  <div class="mb-4 flex items-center gap-3"><span class="text-xs font-mono text-teal-300">02</span><h3 class="text-sm font-semibold">Kontakt</h3></div>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block text-xs text-slate-300">Vorname<input name="firstName" autocomplete="given-name" maxlength="100" class="field mt-1.5" placeholder="Vorname"></label>
+                    <label class="block text-xs text-slate-300">Nachname<input name="lastName" autocomplete="family-name" maxlength="100" class="field mt-1.5" placeholder="Nachname"></label>
+                    <label class="block text-xs text-slate-300 sm:col-span-2">Firma<input name="company" autocomplete="organization" maxlength="160" class="field mt-1.5" placeholder="Unternehmen oder Team"></label>
+                    <label class="block text-xs text-slate-300 sm:col-span-2">E-Mail *<input name="email" required type="email" autocomplete="email" maxlength="254" class="field mt-1.5" placeholder="name@beispiel.de"></label>
+                  </div>
+                </fieldset>
+                <fieldset class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <legend class="sr-only">Planung</legend>
+                  <div class="mb-4 flex items-center gap-3"><span class="text-xs font-mono text-teal-300">03</span><h3 class="text-sm font-semibold">Planung</h3></div>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block text-xs text-slate-300">Startdatum<input name="start" type="date" class="field mt-1.5"></label>
+                    <label class="block text-xs text-slate-300">Enddatum<input name="end" type="date" class="field mt-1.5" aria-describedby="dateHint"></label>
+                    <label class="block text-xs text-slate-300">Budget in €<input name="budget" type="number" min="0" max="1000000000" step="100" class="field mt-1.5" placeholder="z. B. 25000"></label>
+                    <label class="block text-xs text-slate-300">Priorität<select name="priority" class="field mt-1.5"><option value="">Bitte wählen</option><option>Niedrig</option><option>Normal</option><option>Hoch</option><option>Kritisch</option></select></label>
+                  </div>
+                  <p id="dateHint" class="mt-3 text-[11px] text-slate-500">Das Enddatum darf nicht vor dem Startdatum liegen.</p>
+                </fieldset>
+                <fieldset class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <legend class="sr-only">Leistungen und Notizen</legend>
+                  <div class="mb-4 flex items-center gap-3"><span class="text-xs font-mono text-teal-300">04</span><h3 class="text-sm font-semibold">Leistungen & Details</h3></div>
+                  <div class="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-xs"><input name="services" type="checkbox" value="Web" class="h-4 w-4 accent-teal-300">Web</label>
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-xs"><input name="services" type="checkbox" value="App" class="h-4 w-4 accent-teal-300">App</label>
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-xs"><input name="services" type="checkbox" value="Data" class="h-4 w-4 accent-teal-300">Data</label>
+                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-xs"><input name="services" type="checkbox" value="Cloud" class="h-4 w-4 accent-teal-300">Cloud</label>
+                  </div>
+                  <label class="block text-xs text-slate-300">Notizen<textarea name="notes" rows="3" maxlength="10000" class="field mt-1.5 resize-y" placeholder="Was sollten wir noch wissen?"></textarea></label>
+                </fieldset>
+              </div>
+              <div class="mt-4 flex flex-col justify-between gap-5 rounded-2xl border border-white/10 bg-slate-950/40 p-5 md:flex-row md:items-center">
+                <div class="max-w-xl">
+                  <label class="flex items-start gap-2.5 text-xs leading-relaxed text-slate-300"><input name="privacy" type="checkbox" required class="mt-0.5 h-4 w-4 shrink-0 accent-teal-300"><span>Ich stimme zu, dieses Briefing lokal in diesem Browser zu speichern. *<br><span class="text-slate-500">Kein Versand, kein Backend. Auf gemeinsam genutzten Geräten keine vertraulichen Daten speichern.</span></span></label>
+                  <div class="mt-3 flex items-center gap-3"><div id="completionBar" role="progressbar" aria-label="Vollständigkeit des Briefings" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="h-1 w-28 overflow-hidden rounded-full bg-white/10"><div id="completionFill" class="h-full w-0 rounded-full bg-teal-300 transition-all duration-300"></div></div><span id="completionText" class="text-[11px] text-slate-400"></span></div>
+                </div>
+                <div class="shrink-0">
+                  <div class="flex gap-2">
+                    <button type="button" id="resetForm" class="rounded-lg border border-white/10 px-3 py-2.5 text-xs text-slate-300 transition hover:bg-white/5">Demo zurücksetzen</button>
+                    <button type="submit" class="rounded-lg bg-teal-300 px-4 py-2.5 text-xs font-semibold text-slate-950 transition hover:bg-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-300">Lokal speichern <span aria-hidden="true">↗</span></button>
+                  </div>
+                  <p id="saveStatus" role="status" class="mt-2 max-w-sm text-[11px] text-slate-400">Noch nicht gespeichert.</p>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seite 02 -->
+      <section id="face1" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border-x border-white/5 bg-[#141b26]" style="--face-angle:90deg" aria-labelledby="title1" aria-hidden="true" inert>
+        <div class="h-full overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto max-w-6xl pb-4">
+            <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div><p class="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-teal-300">02 / Zusammenhänge erkennen</p><h2 id="title1" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Daten werden <span class="text-slate-500">Perspektiven.</span></h2><p class="mt-2 text-sm text-slate-400">Ein interaktiver Blick auf ein fiktives digitales Geschäft.</p></div>
+              <span class="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[10px] font-medium tracking-wider text-amber-200">DEMODATEN · KEINE LIVE-DATEN</span>
+            </div>
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p id="rangeLabel" class="text-xs text-slate-400"></p>
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="flex rounded-lg border border-white/10 bg-slate-950/40 p-1" role="group" aria-label="Zeitraum">
+                  <button type="button" data-days="7" aria-pressed="false" class="period rounded-md px-3 py-1.5 text-xs transition">7T</button>
+                  <button type="button" data-days="30" aria-pressed="true" class="period rounded-md px-3 py-1.5 text-xs transition">30T</button>
+                  <button type="button" data-days="90" aria-pressed="false" class="period rounded-md px-3 py-1.5 text-xs transition">90T</button>
+                </div>
+                <label class="flex items-center gap-2 text-xs text-slate-400">Kanal<select id="channelFilter" class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-300"><option value="all">Alle Kanäle</option><option value="organic">Organisch</option><option value="direct">Direkt</option><option value="paid">Paid Media</option></select></label>
+              </div>
+            </div>
+            <div class="mb-4 grid gap-3 sm:grid-cols-3" aria-live="polite" aria-atomic="true">
+              <article class="rounded-2xl border border-white/10 bg-gradient-to-br from-teal-300/[0.06] to-slate-900/50 p-5"><div class="mb-3 flex justify-between text-xs text-slate-400"><h3>Umsatz</h3><span class="text-teal-300">€</span></div><p id="kpiRevenue" class="text-3xl font-semibold tracking-tight"></p><p id="deltaRevenue" class="mt-2 text-[11px] text-teal-200"></p></article>
+              <article class="rounded-2xl border border-white/10 bg-slate-900/50 p-5"><div class="mb-3 flex justify-between text-xs text-slate-400"><h3>Projekte</h3><span class="text-violet-300">◇</span></div><p id="kpiProjects" class="text-3xl font-semibold tracking-tight"></p><p class="mt-2 text-[11px] text-slate-500">Abgeschlossene Demo-Projekte</p></article>
+              <article class="rounded-2xl border border-white/10 bg-slate-900/50 p-5"><div class="mb-3 flex justify-between text-xs text-slate-400"><h3>Conversion</h3><span class="text-cyan-300">↗</span></div><p id="kpiConversion" class="text-3xl font-semibold tracking-tight"></p><p class="mt-2 text-[11px] text-slate-500">Demo-Abschlüsse ÷ Demo-Besuche</p></article>
+            </div>
+            <div class="grid gap-4 lg:grid-cols-5">
+              <article class="min-w-0 rounded-2xl border border-white/10 bg-slate-950/30 p-4 sm:p-5 lg:col-span-3">
+                <div class="mb-3 flex items-center justify-between"><h3 class="text-sm font-medium">Umsatzverlauf</h3><span class="flex items-center gap-1.5 text-[10px] text-slate-400"><span class="h-1.5 w-1.5 rounded-full bg-teal-300"></span>Umsatz / Tag</span></div>
+                <div id="lineChart" class="relative h-60 w-full" aria-label="Interaktiver Umsatzverlauf"></div>
+                <p class="mt-2 text-[10px] text-slate-500">Punkte berühren, mit der Maus zeigen oder per Tab fokussieren.</p>
+              </article>
+              <article class="min-w-0 rounded-2xl border border-white/10 bg-slate-950/30 p-4 sm:p-5 lg:col-span-2">
+                <div class="mb-3 flex items-center justify-between"><h3 class="text-sm font-medium">Umsatz nach Kanal</h3><span class="text-[10px] text-slate-500">EUR</span></div>
+                <div id="barChart" class="h-60 w-full" aria-label="Umsatz nach Kanal"></div>
+                <p class="mt-2 text-[10px] text-slate-500">Dieselbe Auswahl wie im Umsatzverlauf.</p>
+              </article>
+            </div>
+            <details class="mt-4 rounded-xl border border-white/10 bg-slate-950/20">
+              <summary class="cursor-pointer px-4 py-3 text-xs text-slate-300">Datentabelle & Berechnung <span class="ml-2 text-slate-500">Zugängliche Alternative zu den Diagrammen</span></summary>
+              <div class="border-t border-white/10 p-4">
+                <p class="mb-3 text-xs leading-relaxed text-slate-400">Fest erzeugte Beispieldaten mit Enddatum 30.06.2025. Jeder Tag der Auswahl ist aufgeführt. Umsatz, Projekte, Besuche und Abschlüsse werden über die ausgewählten Kanäle addiert; Conversion = Abschlüsse / Besuche × 100. Umsatzvergleich: unmittelbar vorhergehender, gleich langer Zeitraum. Kein Bezug zum Briefing.</p>
+                <div class="max-h-72 overflow-auto rounded-lg border border-white/10">
+                  <table class="w-full whitespace-nowrap text-left text-xs"><caption class="sr-only">Alle Tageswerte der aktuellen Zeitraum- und Kanalauswahl</caption><thead class="sticky top-0 bg-slate-900 text-slate-400"><tr><th scope="col" class="px-3 py-3">Datum</th><th scope="col" class="px-3 py-3 text-right">Umsatz</th><th scope="col" class="px-3 py-3 text-right">Projekte</th><th scope="col" class="px-3 py-3 text-right">Besuche</th><th scope="col" class="px-3 py-3 text-right">Abschlüsse</th><th scope="col" class="px-3 py-3 text-right">Conversion</th></tr></thead><tbody id="chartTable" class="divide-y divide-white/5 text-slate-300"></tbody></table>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seite 03 -->
+      <section id="face2" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border-x border-white/5 bg-[#141b26]" style="--face-angle:180deg" aria-labelledby="title2" aria-hidden="true" inert>
+        <div class="h-full overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto max-w-6xl pb-4">
+            <div class="mb-6">
+              <p class="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-teal-300">03 / Ein Moment in Bewegung</p>
+              <h2 id="title2" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Weniger Ablenkung.<span class="text-slate-500"> Mehr Film.</span></h2>
+              <p class="mt-2 text-sm text-slate-400">Ein ruhiger Platz für bewegte Bilder. Du bestimmst, wann es losgeht.</p>
+            </div>
+            <div class="grid items-start gap-5 lg:grid-cols-3">
+              <div class="overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl shadow-black/20 lg:col-span-2">
+                <div class="flex items-center justify-between border-b border-white/10 bg-slate-950 px-4 py-3"><span class="text-[10px] uppercase tracking-[0.2em] text-slate-400">Arbeitsraum-Kino</span><span class="text-[10px] text-slate-500">HTML5 / MP4</span></div>
+                <video id="videoPlayer" class="aspect-video w-full bg-black" controls playsinline preload="metadata" aria-label="Beispielvideo einer Blume">
+                  <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+                  Dein Browser unterstützt kein HTML5-Video. Bitte verwende den untenstehenden Direktlink.
+                </video>
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 px-4 py-3 text-[11px]"><span id="videoStatus" role="status" class="text-slate-400">Kein Autoplay · externe Beispielquelle</span><a id="videoFallback" href="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" target="_blank" rel="noopener noreferrer" class="text-teal-200 underline decoration-teal-300/30 underline-offset-4 hover:text-teal-100">Quelle direkt öffnen ↗</a></div>
+              </div>
+              <aside class="space-y-4">
+                <article class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <span class="text-[10px] uppercase tracking-[0.2em] text-violet-300">Jetzt zu sehen</span>
+                  <h3 id="videoTitle" class="mt-3 text-xl font-medium">Ein kleiner Perspektivwechsel.</h3>
+                  <p class="mt-3 text-sm leading-relaxed text-slate-400">Eine Blume im Wind. Ein kurzer, frei verfügbarer Beispielclip aus den MDN Web Docs — bewusst einfach, damit die Bewegung im Mittelpunkt steht.</p>
+                  <dl class="mt-5 space-y-3 border-t border-white/10 pt-4 text-xs"><div class="flex justify-between"><dt class="text-slate-500">Wiedergabe</dt><dd>Manuell</dd></div><div class="flex justify-between"><dt class="text-slate-500">Beispiel-Lizenz</dt><dd>CC0</dd></div><div class="flex justify-between"><dt class="text-slate-500">Beim Seitenwechsel</dt><dd class="text-teal-200">Automatisch pausiert</dd></div></dl>
+                </article>
+                <form id="videoForm" class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <label for="videoUrl" class="text-xs font-medium">Eigene Videoquelle</label>
+                  <p class="mb-3 mt-1 text-[11px] leading-relaxed text-slate-500">Direkte HTTP(S)-Medienadresse, z. B. eine MP4-Datei. Keine YouTube-Webseiten.</p>
+                  <input id="videoUrl" type="url" required value="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" class="field" aria-describedby="videoError" placeholder="https://beispiel.de/video.mp4">
+                  <button type="submit" class="mt-3 w-full rounded-lg border border-teal-300/20 bg-teal-300/10 px-4 py-2.5 text-xs font-medium text-teal-200 transition hover:bg-teal-300/20">Video laden <span aria-hidden="true">↗</span></button>
+                  <p id="videoError" role="alert" class="mt-3 hidden text-xs leading-relaxed text-amber-200"></p>
+                </form>
+                <p class="px-1 text-[11px] leading-relaxed text-slate-500">Medien werden extern geladen. Dabei erhält der jeweilige Anbieter Verbindungsdaten wie deine IP-Adresse. Sandbox, Netzwerk oder Medienformat können die Wiedergabe einschränken. Es werden keine Videos hochgeladen.</p>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seite 04 -->
+      <section id="face3" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border-x border-white/5 bg-[#141b26]" style="--face-angle:270deg" aria-labelledby="title3" aria-hidden="true" inert>
+        <div class="flex h-full flex-col overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col">
+            <div class="mb-6 shrink-0">
+              <p class="mb-2 text-[10px] font-medium uppercase tracking-[0.24em] text-teal-300">04 / Gedanken im Fluss</p>
+              <h2 id="title3" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Worte, die <span class="text-slate-500">weitergehen.</span></h2>
+              <p class="mt-2 text-sm text-slate-400">Dein Teleprompter. Ein klarer Rhythmus für große und kleine Gedanken.</p>
+            </div>
+            <div class="grid flex-1 gap-5 pb-1 lg:min-h-0 lg:grid-cols-3">
+              <article class="relative flex min-h-[350px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 lg:col-span-2">
+                <div class="z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-slate-950 px-5 py-3"><span class="text-[10px] uppercase tracking-[0.2em] text-slate-400">Der Leseraum</span><span id="prompterState" role="status" class="text-[10px] text-teal-200">Bereit</span></div>
+                <div id="prompterViewport" class="relative min-h-[290px] flex-1 overflow-hidden" aria-label="Laufender Lesetext">
+                  <div class="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-slate-950 to-transparent"></div>
+                  <div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-20 bg-gradient-to-t from-slate-950 to-transparent"></div>
+                  <div class="pointer-events-none absolute left-0 top-1/3 z-10 h-px w-4 bg-teal-300/70" aria-hidden="true"></div>
+                  <div id="prompterTrack" class="prompter-track px-7 text-[length:var(--prompter-size,24px)] font-light leading-[1.85] tracking-wide text-stone-200 sm:px-12">
+                    <div id="prompterFirst" class="whitespace-pre-line pb-16 pt-10"></div>
+                    <div id="prompterSecond" aria-hidden="true" class="whitespace-pre-line pb-16 pt-10"></div>
+                  </div>
+                </div>
+                <div class="z-10 flex shrink-0 items-center justify-between border-t border-white/10 bg-slate-950 px-5 py-3 text-[10px] text-slate-500"><span>ENDLOSER LESEMODUS</span><span>Dein Text bleibt in dieser Sitzung.</span></div>
+              </article>
+              <aside class="flex flex-col gap-4">
+                <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <h3 class="mb-4 text-sm font-medium">Dein Lesetempo</h3>
+                  <div class="mb-5 flex gap-2"><button id="togglePrompter" type="button" class="flex-1 rounded-lg bg-teal-300 px-4 py-2.5 text-xs font-semibold text-slate-950 transition hover:bg-teal-200">Start</button><button id="restartPrompter" type="button" class="rounded-lg border border-white/10 px-3 py-2.5 text-xs text-slate-300 transition hover:bg-white/5">↺ Neustart</button></div>
+                  <label for="speed" class="mb-2 flex justify-between text-xs text-slate-400"><span>Geschwindigkeit</span><output id="speedOutput" for="speed" class="font-mono text-slate-200">32 px/s</output></label>
+                  <input id="speed" type="range" min="10" max="100" value="32" class="mb-5 h-1.5 w-full cursor-pointer accent-teal-300">
+                  <label for="fontSize" class="mb-2 flex justify-between text-xs text-slate-400"><span>Schriftgröße</span><output id="fontOutput" for="fontSize" class="font-mono text-slate-200">24 px</output></label>
+                  <input id="fontSize" type="range" min="16" max="40" value="24" class="h-1.5 w-full cursor-pointer accent-violet-300">
+                  <p id="motionHint" class="mt-4 text-[11px] leading-relaxed text-slate-500">Pausiert automatisch auf anderen Seiten und in ausgeblendeten Tabs.</p>
+                </div>
+                <form id="textForm" class="flex flex-1 flex-col rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+                  <label for="customText" class="mb-2 text-xs font-medium">Eigener Text</label>
+                  <textarea id="customText" rows="5" maxlength="50000" required class="field min-h-32 flex-1 resize-y" placeholder="Deine Gedanken, dein Skript, deine nächste große Idee …"></textarea>
+                  <div class="mt-3 flex items-center justify-between gap-2"><span id="textStatus" role="status" class="text-[10px] text-slate-500">Nur Text, kein HTML.</span><button type="submit" class="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-xs transition hover:bg-white/5">Text übernehmen</button></div>
+                </form>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Seite 05: Oberseite -->
+      <section id="face4" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border border-white/5 bg-[#070c1d]" style="--face-transform:rotateX(90deg)" aria-labelledby="title4" aria-hidden="true" inert>
+        <div class="overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto max-w-6xl pb-4">
+            <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="mb-2 text-[10px] uppercase tracking-[0.24em] text-teal-300">05 / Oberseite · Kosmischer Spielraum</p>
+                <h2 id="title4" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Cosmic Playground<span class="text-slate-500"> · Sternenatelier</span></h2>
+                <p class="mt-2 text-sm text-slate-400">Aurora, Licht und Tiefe. Bewege Maus oder Finger über das Sternenfeld.</p>
+              </div>
+              <span class="rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-1.5 text-[10px] tracking-wider text-violet-200">VISUELLE DEMO · KEINE MESSDATEN</span>
+            </div>
+            <div class="relative h-[clamp(260px,45dvh,540px)] overflow-hidden rounded-2xl border border-teal-200/20 bg-[#030817] shadow-2xl shadow-violet-950/40">
+              <canvas id="cosmicCanvas" class="visual-canvas" role="img" aria-label="Generiertes Sternenfeld mit leuchtenden Aurorabändern und Zeiger-Parallaxe"></canvas>
+              <div class="pointer-events-none absolute left-4 top-4 max-w-[80%] rounded-xl border border-white/15 bg-slate-950/85 px-4 py-3 sm:left-6 sm:top-6">
+                <p class="text-[10px] uppercase tracking-[0.22em] text-teal-200">Ein weiter Blick</p>
+                <p class="mt-1 text-sm text-stone-100">Kein Ziel. Nur Raum für neue Gedanken.</p>
+              </div>
+              <span id="cosmicState" role="status" class="absolute bottom-4 left-4 rounded-lg bg-slate-950/90 px-3 py-2 text-[11px] text-teal-100"></span>
+            </div>
+            <div class="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-slate-900/60 p-5 sm:grid-cols-3">
+              <div><button id="cosmicPause" type="button" class="w-full rounded-lg bg-teal-300 px-4 py-2.5 text-xs font-semibold text-slate-950">Animation pausieren</button><p class="mt-2 text-[11px] text-slate-400">Parallaxe mit Maus und Touch; keine Gestenpflicht.</p></div>
+              <div><label for="cosmicSpeed" class="mb-3 flex justify-between text-xs text-slate-300">Geschwindigkeit <output id="cosmicSpeedOutput" for="cosmicSpeed">1,0×</output></label><input id="cosmicSpeed" type="range" min="0.2" max="2" step="0.1" value="1" class="w-full accent-teal-300"></div>
+              <div><label for="cosmicDensity" class="mb-3 flex justify-between text-xs text-slate-300">Partikeldichte <output id="cosmicDensityOutput" for="cosmicDensity">220 Sterne</output></label><input id="cosmicDensity" type="range" min="40" max="400" step="20" value="220" class="w-full accent-violet-300"></div>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-slate-400">Bei reduzierter Bewegung zunächst ein Standbild. Animationen laufen nur auf der aktiven Fläche und in sichtbaren Tabs. Mit ↓ zurück zur zuletzt besuchten Seitenfläche.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seite 06: Unterseite -->
+      <section id="face5" class="cube-face absolute inset-0 flex h-full w-full flex-col overflow-hidden border border-white/5 bg-[#0c1020]" style="--face-transform:rotateX(-90deg)" aria-labelledby="title5" aria-hidden="true" inert>
+        <div class="overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 lg:px-12">
+          <div class="mx-auto max-w-6xl pb-4">
+            <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p class="mb-2 text-[10px] uppercase tracking-[0.24em] text-teal-300">06 / Unterseite · Kreatives Labor</p>
+                <h2 id="title5" tabindex="-1" class="text-3xl font-semibold tracking-tight outline-none sm:text-4xl">Creative Lab<span class="text-slate-500"> · Licht in Bewegung</span></h2>
+                <p class="mt-2 text-sm text-slate-400">Ein generatives Wellenraster. Maus oder Finger formen das Lichtfeld.</p>
+              </div>
+              <span class="rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-[10px] tracking-wider text-amber-200">VISUELLE DEMO · KEINE LIVE-DATEN</span>
+            </div>
+            <div class="relative h-[clamp(260px,45dvh,540px)] overflow-hidden rounded-2xl border border-violet-200/20 bg-[#030817] shadow-2xl shadow-cyan-950/30">
+              <canvas id="labCanvas" class="visual-canvas" role="img" aria-label="Generiertes leuchtendes Wellenraster mit drei reaktiven Lichtkugeln"></canvas>
+              <div class="pointer-events-none absolute left-4 top-4 rounded-xl border border-white/15 bg-slate-950/85 px-4 py-3">
+                <p class="text-[10px] uppercase tracking-[0.22em] text-violet-200">Lichtstudie / 006</p>
+                <p class="mt-1 text-sm text-stone-100">Mathematik als Material. Nicht als Messwert.</p>
+              </div>
+              <span id="labState" role="status" class="absolute bottom-4 left-4 rounded-lg bg-slate-950/90 px-3 py-2 text-[11px] text-teal-100"></span>
+            </div>
+            <div class="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-slate-900/60 p-5 sm:grid-cols-3">
+              <button id="labPause" type="button" class="self-start rounded-lg bg-teal-300 px-4 py-2.5 text-xs font-semibold text-slate-950">Animation pausieren</button>
+              <label for="labPalette" class="text-xs text-slate-300">Farbpalette<select id="labPalette" class="mt-2 w-full rounded-lg border border-white/15 bg-slate-950 px-3 py-2.5 text-sm"><option value="polar">Polarlicht · Türkis / Violett</option><option value="ember">Sonnenfunken · Gold / Koralle</option><option value="ocean">Tiefsee · Blau / Mint</option></select></label>
+              <div><label for="labIntensity" class="mb-3 flex justify-between text-xs text-slate-300">Intensität <output id="labIntensityOutput" for="labIntensity">65 %</output></label><input id="labIntensity" type="range" min="10" max="100" value="65" class="w-full accent-violet-300"></div>
+            </div>
+            <details class="mt-4 rounded-xl border border-white/10 bg-slate-950/50">
+              <summary class="cursor-pointer px-4 py-3 text-sm text-teal-200">So funktioniert der sechsseitige Raum</summary>
+              <div class="space-y-3 border-t border-white/10 p-4 text-xs leading-relaxed text-slate-300">
+                <p>Sechs echte quadratische CSS-3D-Flächen bilden einen Würfel. Seine Kantenlänge entspricht der größeren Bühnenabmessung. Die Bühne beschneidet den Überschuss; jeder Inhaltsbereich bleibt genau so groß wie der sichtbare Arbeitsbereich. So bleiben die Z-Abstände auch im Hochformat korrekt.</p>
+                <p>← / → wechseln die Seitenflächen. ↑ öffnet die Oberseite, ↓ die Unterseite. Auf der Oberseite führt ↓, auf der Unterseite ↑ zur gemerkten Seitenfläche zurück. Seitliche Pfeile wechseln auch von einem Pol zur benachbarten Seitenfläche. Die Direktwahl erreicht alle sechs Flächen.</p>
+                <p>Formulare bleiben lokal, Charts zeigen Demodaten, das Video startet manuell. Die beiden Canvas-Demos sind rein generativ, ohne externe Bilder oder Live-Daten. Unsichtbare Flächen sind inert; ihre Animationen pausieren.</p>
+                <p>Die vollständige Architektur, konkrete Codebeispiele und die Anleitung „Neue Seiten hinzufügen“ findest du im Download <strong>„Prinzip als Markdown“</strong> oben rechts. Ein physischer Würfel hat nur sechs Flächen: zusätzliche logische Seiten brauchen einen Inhaltsslot oder ein anderes Navigationsmodell.</p>
+              </div>
+            </details>
+            <p class="mt-3 text-xs text-slate-400">Mit ↑ zurück zur zuletzt besuchten Seitenfläche. Alle Einstellungen dieser Lichtdemos bleiben nur in dieser Sitzung.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="z-20 shrink-0 border-t border-white/10 bg-slate-950 px-3 py-3 sm:px-7">
+    <nav class="mx-auto flex max-w-screen-2xl items-center justify-between gap-2" aria-label="Würfelseiten">
+      <button id="prev" type="button" aria-label="Vorherige Würfelseite" title="Vorherige Seite (Pfeiltaste links)" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] text-xl text-slate-200 transition hover:border-teal-300/50 hover:bg-teal-300/10 hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">←</button>
+      <div id="pageButtons" class="flex min-w-0 items-center gap-1 overflow-x-auto py-1 sm:gap-2" aria-label="Alle sechs Flächen"></div>
+      <div class="flex shrink-0 flex-col gap-1">
+        <button id="up" type="button" aria-label="Nach oben: Oberseite öffnen oder von unten zurückkehren" title="Nach oben (Pfeiltaste hoch)" class="flex h-8 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-lg hover:bg-teal-300/10">↑</button>
+        <button id="down" type="button" aria-label="Nach unten: Unterseite öffnen oder von oben zurückkehren" title="Nach unten (Pfeiltaste runter)" class="flex h-8 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-lg hover:bg-teal-300/10">↓</button>
+      </div>
+      <button id="next" type="button" aria-label="Nächste Würfelseite" title="Nächste Seite (Pfeiltaste rechts)" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] text-xl text-slate-200 transition hover:border-teal-300/50 hover:bg-teal-300/10 hover:text-teal-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-300">→</button>
+    </nav>
+    <div class="mt-2 hidden items-center justify-between text-[9px] uppercase tracking-[0.18em] text-slate-500 sm:flex"><span>Lokal / Ohne Backend</span><span>← → Seiten <span class="mx-2">/</span> ↑ ↓ Pole und Rückkehr</span><span id="pageCounter">Seite 01 von 06</span></div>
+  </footer>
+  <div id="navStatus" role="status" aria-live="polite" class="sr-only">Seite 1 von 6: Eingabemaske.</div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+/* render() bindet die vorhandene HTML-Fläche ein; Inhalt und Fachlogik bleiben erhalten. */
+const pages = [
+  {id:'briefing', title:'Eingabemaske', icon:'▤', face:'face0', heading:'title0', yaw:0, pitch:0, render:() => $('face0')},
+  {id:'analytics', title:'Analytics', icon:'▥', face:'face1', heading:'title1', yaw:-90, pitch:0, render:() => $('face1')},
+  {id:'video', title:'Video', icon:'▷', face:'face2', heading:'title2', yaw:-180, pitch:0, render:() => $('face2')},
+  {id:'prompter', title:'Lauftext', icon:'≋', face:'face3', heading:'title3', yaw:-270, pitch:0, render:() => $('face3')},
+  {id:'cosmic', title:'Sternenatelier', icon:'✦', face:'face4', heading:'title4', yaw:0, pitch:-90, render:() => $('face4')},
+  {id:'lab', title:'Kreativlabor', icon:'◈', face:'face5', heading:'title5', yaw:0, pitch:90, render:() => $('face5')}
+];
+const titles = pages.map(page => page.title);
+const stage = $('stage'), cube = $('cube');
+const faces = pages.map(page => page.render());
+let active = 0, sideIndex = 0, resizeFrame = 0;
+const orientation = {yaw:0, pitch:0};
+let rotationTimer;
+pages.forEach((page, index) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.page = index;
+  button.className = 'pageButton flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-2.5 text-xs transition sm:px-3';
+  button.title = (index + 1) + ' — ' + page.title;
+  button.setAttribute('aria-label', button.title);
+  const icon = document.createElement('span');
+  icon.textContent = page.icon;
+  icon.setAttribute('aria-hidden', 'true');
+  const label = document.createElement('span');
+  label.className = 'hidden xl:inline';
+  label.textContent = page.title;
+  const number = document.createElement('span');
+  number.className = 'font-mono text-[10px]';
+  number.textContent = String(index + 1).padStart(2, '0');
+  button.append(icon, number, label);
+  $('pageButtons').appendChild(button);
+});
+const fieldClasses = 'w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2.5 text-sm text-stone-200 placeholder:text-slate-600 outline-none transition focus:border-teal-300/60 focus:ring-2 focus:ring-teal-300/10 disabled:opacity-50';
+document.querySelectorAll('.field').forEach(el => el.classList.add(...fieldClasses.split(' ')));
+
+function showNotice(text) {
+  $('noticeText').textContent = text;
+  $('notice').classList.remove('hidden');
+  $('notice').classList.add('flex');
+}
+$('dismissNotice').addEventListener('click', () => {
+  $('notice').classList.add('hidden');
+  $('notice').classList.remove('flex');
+});
+
+function sizeStage() {
+  const width = stage.clientWidth, height = stage.clientHeight;
+  if (!width || !height) return;
+  const side = Math.max(width, height);
+  stage.style.setProperty('--side', side + 'px');
+  stage.style.setProperty('--depth', (side / 2) + 'px');
+  stage.style.setProperty('--view-width', width + 'px');
+  stage.style.setProperty('--view-height', height + 'px');
+  stage.style.setProperty('--perspective', Math.max(side * 1.7, 850) + 'px');
+}
+const stageObserver = new ResizeObserver(() => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(sizeStage);
+});
+stageObserver.observe(stage);
+sizeStage();
+
+function updateNavigation() {
+  faces.forEach((face, i) => {
+    face.inert = i !== active;
+    face.setAttribute('aria-hidden', String(i !== active));
+  });
+  document.querySelectorAll('.pageButton').forEach((button, i) => {
+    const selected = i === active;
+    button.classList.toggle('border-teal-300/30', selected);
+    button.classList.toggle('bg-teal-300/10', selected);
+    button.classList.toggle('text-teal-200', selected);
+    button.classList.toggle('border-transparent', !selected);
+    button.classList.toggle('text-slate-400', !selected);
+    button.classList.add('hover:bg-white/5', 'focus-visible:outline', 'focus-visible:outline-2', 'focus-visible:outline-teal-300');
+    if (selected) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+  });
+  const number = String(active + 1).padStart(2, '0');
+  $('headerPage').textContent = number + ' — ' + titles[active];
+  $('pageCounter').textContent = 'Seite ' + number + ' von 06';
+  $('navStatus').textContent = 'Seite ' + (active + 1) + ' von 6: ' + titles[active] + '.';
+  $('up').disabled = active === 4;
+  $('down').disabled = active === 5;
+  [$('up'), $('down')].forEach(button => button.classList.toggle('opacity-30', button.disabled));
+}
+function goTo(target, yawDirection = 0) {
+  if (!pages[target] || target === active) return;
+  const focusWasInside = faces[active].contains(document.activeElement);
+  const previous = active;
+  if (focusWasInside) $('next').focus({preventScroll:true});
+  clearTimeout(rotationTimer);
+  pages[previous].onLeave?.();
+  active = target;
+  if (active < 4) sideIndex = active;
+  const page = pages[active];
+  // Nächstes äquivalentes Y-Ziel; ein Seitenschritt bleibt immer genau 90 Grad.
+  let delta = ((page.yaw - orientation.yaw + 180) % 360 + 360) % 360 - 180;
+  if (delta === -180 && yawDirection >= 0) delta = 180;
+  orientation.yaw += delta;
+  orientation.pitch = page.pitch;
+  if (active !== 2) $('videoPlayer').pause();
+  cube.style.setProperty('--rotation', orientation.yaw + 'deg');
+  cube.style.setProperty('--pitch', orientation.pitch + 'deg');
+  updateNavigation();
+  pages[active].onEnter?.();
+  syncPrompter();
+  syncVisuals();
+  if (focusWasInside) {
+    const expected = active;
+    rotationTimer = setTimeout(() => {
+      if (active === expected && document.activeElement === $('next')) {
+        $(pages[active].heading).focus({preventScroll:true});
+      }
+    }, reducedMotion.matches ? 10 : 760);
+  }
+}
+function navigate(delta) {
+  goTo(((sideIndex + delta) % 4 + 4) % 4, -delta);
+}
+function navigateVertical(direction) {
+  if (direction < 0) {
+    if (active === 5) goTo(sideIndex);
+    else if (active !== 4) goTo(4);
+  } else {
+    if (active === 4) goTo(sideIndex);
+    else if (active !== 5) goTo(5);
+  }
+}
+$('prev').addEventListener('click', () => navigate(-1));
+$('next').addEventListener('click', () => navigate(1));
+$('up').addEventListener('click', () => navigateVertical(-1));
+$('down').addEventListener('click', () => navigateVertical(1));
+document.querySelectorAll('.pageButton').forEach(button => button.addEventListener('click', () => goTo(Number(button.dataset.page))));
+document.addEventListener('keydown', event => {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.defaultPrevented || event.isComposing) return;
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target.closest('input,textarea,select,video,audio,form,[contenteditable]:not([contenteditable="false"]),[role="slider"],[role="spinbutton"],[role="listbox"],[role="combobox"],[role="menu"],[role="tablist"],[data-point]')) return;
+  const vertical = event.key === 'ArrowUp' || event.key === 'ArrowDown';
+  if (vertical && target.closest('button,a,summary,[tabindex]:not([tabindex="-1"])')) return;
+  if (vertical || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    event.preventDefault();
+    if (event.repeat) return;
+    if (vertical) navigateVertical(event.key === 'ArrowUp' ? -1 : 1);
+    else navigate(event.key === 'ArrowLeft' ? -1 : 1);
+  }
+});
+updateNavigation();
+
+/* Fullscreen ist optional: Das Layout benötigt die API nicht. */
+$('fullscreen').addEventListener('click', async () => {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      if (!document.documentElement.requestFullscreen) throw new Error('unsupported');
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    showNotice('Vollbild ist hier nicht verfügbar oder wird von der eingebetteten Vorschau blockiert. Der Würfel funktioniert weiterhin im gesamten verfügbaren Bereich. Öffne die HTML-Datei in einem eigenen Browser-Tab oder nutze das Browser-Vollbild (oft F11).');
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  const on = Boolean(document.fullscreenElement);
+  $('fullscreenLabel').textContent = on ? 'Verkleinern' : 'Vollbild';
+  $('fullscreen').setAttribute('aria-label', on ? 'Vollbild verlassen' : 'Vollbild einschalten');
+  sizeStage();
+});
+
+/* Projektbriefing */
+const form = $('briefing');
+const storageKey = 'cube-workspace-briefing-v1';
+const demo = {
+  project:'Nordlicht — Digitale Plattform',
+  description:'Eine klare, zugängliche Plattform für ein vernetztes Team. Demo-Projekt zum Ausprobieren.',
+  category:'Digitale Plattform', status:'In Planung',
+  firstName:'Alex', lastName:'Muster', company:'Studio Nordlicht (Demo)', email:'alex@example.com',
+  start:'2026-08-03', end:'2026-11-27', budget:'25000', priority:'Normal',
+  services:['Web','Data'], notes:'Demo: Fokus auf Barrierefreiheit, schnelle Ladezeiten und eine ruhige visuelle Sprache.',
+  privacy:false
+};
+const scalarNames = ['project','description','category','status','firstName','lastName','company','email','start','end','budget','priority','notes'];
+function fillForm(data) {
+  scalarNames.forEach(name => {
+    form.elements[name].value = typeof data[name] === 'string' ? data[name] : '';
+  });
+  form.querySelectorAll('[name="services"]').forEach(el => {
+    el.checked = Array.isArray(data.services) && data.services.includes(el.value);
+  });
+  form.elements.privacy.checked = data.privacy === true;
+  checkDates();
+  updateCompletion();
+}
+function readForm() {
+  const data = {};
+  scalarNames.forEach(name => data[name] = form.elements[name].value.trim());
+  data.services = [...form.querySelectorAll('[name="services"]:checked')].map(el => el.value);
+  data.privacy = form.elements.privacy.checked;
+  return data;
+}
+function checkDates() {
+  const start = form.elements.start.value, end = form.elements.end.value;
+  const bad = Boolean(start && end && end < start);
+  form.elements.end.setCustomValidity(bad ? 'Bitte wähle ein Enddatum am oder nach dem Startdatum.' : '');
+  $('dateHint').textContent = bad ? 'Bitte korrigieren: Das Enddatum liegt vor dem Startdatum.' : 'Das Enddatum darf nicht vor dem Startdatum liegen.';
+  $('dateHint').classList.toggle('text-amber-200', bad);
+}
+function updateCompletion() {
+  const data = readForm();
+  const checks = scalarNames.map(name => Boolean(data[name]));
+  checks.push(data.services.length > 0, data.privacy);
+  const count = checks.filter(Boolean).length;
+  const pct = Math.round(count / checks.length * 100);
+  $('completionFill').style.width = pct + '%';
+  $('completionBar').setAttribute('aria-valuenow', String(pct));
+  $('completionText').textContent = pct + '% ausgefüllt · ' + count + '/' + checks.length + ' Bereiche';
+}
+fillForm(demo);
+try {
+  const saved = localStorage.getItem(storageKey);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (!parsed || !parsed.data || typeof parsed.data !== 'object') throw new Error('Invalid storage');
+    fillForm(parsed.data);
+    $('saveStatus').textContent = 'Lokal gespeichertes Briefing geladen. Demo-Werte können verändert sein.';
+  }
+} catch (error) {
+  $('saveStatus').textContent = 'Lokaler Speicher nicht lesbar. Demo geladen; Eingabe bleibt möglich.';
+}
+form.addEventListener('input', () => {
+  checkDates();
+  updateCompletion();
+  $('saveStatus').textContent = 'Ungespeicherte Änderungen · nur in dieser Sitzung.';
+});
+form.addEventListener('change', () => { checkDates(); updateCompletion(); });
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  checkDates();
+  if (!form.reportValidity()) return;
+  try {
+    const now = new Date();
+    localStorage.setItem(storageKey, JSON.stringify({version:1, savedAt:now.toISOString(), data:readForm()}));
+    $('saveStatus').textContent = 'Lokal gespeichert · ' + now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr · kein Versand.';
+  } catch (error) {
+    $('saveStatus').textContent = 'Speichern nicht möglich: Der Browser blockiert den Speicher oder er ist voll. Deine Eingaben bleiben in dieser Sitzung erhalten.';
+  }
+});
+$('resetForm').addEventListener('click', () => {
+  if (!confirm('Alle Eingaben und das lokal gespeicherte Briefing löschen und die Demo-Werte wiederherstellen?')) return;
+  let removed = true;
+  try { localStorage.removeItem(storageKey); } catch (error) { removed = false; }
+  fillForm(demo);
+  $('saveStatus').textContent = removed ? 'Demo wiederhergestellt · lokale Kopie gelöscht · noch nicht gespeichert.' : 'Demo wiederhergestellt. Die lokale Kopie konnte nicht gelöscht werden (Speicherzugriff blockiert).';
+});
+
+/* Deterministische Analytics, ohne Chartbibliothek */
+const money = value => new Intl.NumberFormat('de-DE', {style:'currency', currency:'EUR', maximumFractionDigits:0}).format(value);
+const integer = value => new Intl.NumberFormat('de-DE').format(value);
+const percent = value => new Intl.NumberFormat('de-DE', {maximumFractionDigits:2, minimumFractionDigits:2}).format(value) + ' %';
+const dayLabel = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', timeZone:'UTC'});
+const fullDate = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('de-DE', {timeZone:'UTC'});
+const channels = [
+  {id:'organic', label:'Organisch', color:'#5eead4'},
+  {id:'direct', label:'Direkt', color:'#a5b4fc'},
+  {id:'paid', label:'Paid Media', color:'#67e8f9'}
+];
+const datasets = Array.from({length:180}, (_, index) => {
+  const date = new Date(Date.UTC(2025,5,30) - (179-index)*86400000).toISOString().slice(0,10);
+  const values = {};
+  channels.forEach((channel, j) => {
+    const wave = Math.sin(index*0.43+j*1.7)*0.2 + Math.cos(index*0.17+j)*0.12;
+    const visits = Math.round((340+j*95)*(1+index/900+wave));
+    const conversions = Math.max(1, Math.round(visits*(0.027+j*0.006+0.006*Math.sin(index*0.3+j))));
+    values[channel.id] = {
+      revenue:Math.round(conversions*(83+j*24)+160+index*2.6),
+      projects:Math.max(0, Math.round(conversions/4+j*0.2)),
+      visits, conversions
+    };
+  });
+  return {date, values};
+});
+let days = 30, channel = 'all';
+const selectedChannels = () => channels.filter(c => channel === 'all' || c.id === channel);
+function aggregate(rows) {
+  return rows.map(row => {
+    const total = {date:row.date, revenue:0, projects:0, visits:0, conversions:0};
+    selectedChannels().forEach(c => {
+      ['revenue','projects','visits','conversions'].forEach(key => total[key] += row.values[c.id][key]);
+    });
+    return total;
+  });
+}
+function sum(rows, key) { return rows.reduce((value, row) => value + row[key], 0); }
+function chartSvg(inner, label, width = 720, height = 245) {
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+width+' '+height+'" class="h-full w-full overflow-visible" role="group" aria-label="'+label+'">'+inner+'</svg>';
+}
+function updateCharts() {
+  const currentRows = datasets.slice(-days);
+  const values = aggregate(currentRows);
+  const previous = aggregate(datasets.slice(-days*2, -days));
+  const revenue = sum(values,'revenue'), previousRevenue = sum(previous,'revenue');
+  $('kpiRevenue').textContent = money(revenue);
+  $('kpiProjects').textContent = integer(sum(values,'projects'));
+  $('kpiConversion').textContent = percent(sum(values,'conversions') / sum(values,'visits') * 100);
+  const change = (revenue / previousRevenue - 1)*100;
+  $('deltaRevenue').textContent = (change >= 0 ? '↗ +' : '↘ ') + change.toLocaleString('de-DE',{maximumFractionDigits:1}) + ' % zum vorigen ' + days + '-Tage-Zeitraum';
+  $('rangeLabel').textContent = fullDate(values[0].date) + ' – ' + fullDate(values[values.length-1].date) + ' · ' + (channel === 'all' ? 'Alle Kanäle' : selectedChannels()[0].label);
+  document.querySelectorAll('.period').forEach(button => {
+    const selected = Number(button.dataset.days) === days;
+    button.setAttribute('aria-pressed', String(selected));
+    button.classList.toggle('bg-slate-700', selected);
+    button.classList.toggle('text-white', selected);
+    button.classList.toggle('text-slate-400', !selected);
+  });
+
+  const left=62, top=20, plotW=634, plotH=174, bottom=top+plotH;
+  const max = Math.ceil(Math.max(...values.map(v=>v.revenue))/1000)*1000 || 1000;
+  const x = index => left + index/(values.length-1)*plotW;
+  const y = value => bottom - value/max*plotH;
+  let content = '<text x="4" y="10" fill="#64748b" font-size="10">EUR / Tag</text>';
+  for (let i=0; i<=4; i++) {
+    const amount = max*i/4, yy = y(amount);
+    content += '<line x1="'+left+'" y1="'+yy+'" x2="696" y2="'+yy+'" stroke="#334155" stroke-opacity=".55"/><text x="52" y="'+(yy+4)+'" text-anchor="end" fill="#94a3b8" font-size="10">'+integer(amount)+'</text>';
+  }
+  const points = values.map((v,i)=>x(i)+','+y(v.revenue)).join(' ');
+  const area = 'M '+left+','+bottom+' L '+points.split(' ').join(' L ')+' L 696,'+bottom+' Z';
+  content += '<defs><linearGradient id="revenueFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5eead4" stop-opacity=".17"/><stop offset="100%" stop-color="#5eead4" stop-opacity="0"/></linearGradient></defs>';
+  content += '<path d="'+area+'" fill="url(#revenueFade)"/><polyline points="'+points+'" fill="none" stroke="#5eead4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  const ticks = [...new Set([0,Math.floor((values.length-1)/3),Math.floor((values.length-1)*2/3),values.length-1])];
+  ticks.forEach(i => content += '<text x="'+x(i)+'" y="220" text-anchor="middle" fill="#94a3b8" font-size="10">'+dayLabel(values[i].date)+'</text>');
+  values.forEach((v,i) => {
+    content += '<g tabindex="0" data-point="'+i+'" class="group outline-none" aria-label="'+fullDate(v.date)+': '+money(v.revenue)+' Umsatz"><circle cx="'+x(i)+'" cy="'+y(v.revenue)+'" r="9" fill="transparent"/><circle cx="'+x(i)+'" cy="'+y(v.revenue)+'" r="3" fill="#141b26" stroke="#5eead4" stroke-width="1.5" class="transition group-hover:fill-teal-200 group-focus:fill-teal-200 group-focus:stroke-white"/><title>'+fullDate(v.date)+': '+money(v.revenue)+'</title></g>';
+  });
+  $('lineChart').innerHTML = chartSvg(content, 'Umsatzverlauf in Euro pro Tag. Einzelpunkte mit Tab erreichbar.') + '<div id="chartTooltip" role="tooltip" class="pointer-events-none absolute left-1/2 top-0 z-20 hidden -translate-x-1/2 rounded-lg border border-teal-300/30 bg-slate-900 px-3 py-2 text-center text-[11px] text-teal-100 shadow-xl"></div>';
+  const tooltip = $('chartTooltip');
+  $('lineChart').querySelectorAll('[data-point]').forEach(point => {
+    const show = () => {
+      const i = Number(point.dataset.point), v = values[i];
+      tooltip.textContent = fullDate(v.date) + ' · ' + money(v.revenue);
+      tooltip.classList.remove('hidden');
+      tooltip.style.left = Math.max(20, Math.min(80, x(i)/720*100))+'%';
+    };
+    const hide = () => tooltip.classList.add('hidden');
+    point.addEventListener('pointerenter',show);
+    point.addEventListener('pointerleave',hide);
+    point.addEventListener('focus',show);
+    point.addEventListener('blur',hide);
+    point.addEventListener('keydown', e => { if(e.key === 'Escape') hide(); });
+  });
+
+  const selected = selectedChannels();
+  const totals = selected.map(c => ({...c, revenue:currentRows.reduce((acc,row)=>acc+row.values[c.id].revenue,0)}));
+  const maxBar = Math.ceil(Math.max(...totals.map(c=>c.revenue))/10000)*10000 || 10000;
+  let bars = '<text x="2" y="10" fill="#64748b" font-size="10">EUR / Zeitraum</text>';
+  for(let i=0; i<=4; i++) {
+    const yy = 194-i/4*166;
+    bars += '<line x1="61" y1="'+yy+'" x2="410" y2="'+yy+'" stroke="#334155" stroke-opacity=".55"/><text x="52" y="'+(yy+4)+'" text-anchor="end" fill="#94a3b8" font-size="10">'+(maxBar*i/4/1000).toLocaleString('de-DE')+'k</text>';
+  }
+  const slot = 340/totals.length;
+  totals.forEach((c,i) => {
+    const barW = Math.min(64,slot*0.5), xx=65+slot*i+(slot-barW)/2, hh=c.revenue/maxBar*166;
+    bars += '<g tabindex="0" class="group outline-none" aria-label="'+c.label+': '+money(c.revenue)+'"><rect x="'+xx+'" y="'+(194-hh)+'" width="'+barW+'" height="'+hh+'" rx="5" fill="'+c.color+'" fill-opacity=".7" class="transition group-hover:fill-opacity-100 group-focus:stroke-white" stroke-width="2"/><text x="'+(xx+barW/2)+'" y="'+(186-hh)+'" text-anchor="middle" fill="#e2e8f0" font-size="10">'+(c.revenue/1000).toLocaleString('de-DE',{maximumFractionDigits:1})+'k</text><text x="'+(xx+barW/2)+'" y="220" text-anchor="middle" fill="#94a3b8" font-size="11">'+c.label+'</text><title>'+c.label+': '+money(c.revenue)+'</title></g>';
+  });
+  $('barChart').innerHTML = chartSvg(bars, 'Gesamtumsatz in Euro nach ausgewählten Kanälen', 430,245);
+  $('chartTable').innerHTML = values.map(v => '<tr><th scope="row" class="px-3 py-2 font-normal">'+fullDate(v.date)+'</th><td class="px-3 py-2 text-right">'+money(v.revenue)+'</td><td class="px-3 py-2 text-right">'+integer(v.projects)+'</td><td class="px-3 py-2 text-right">'+integer(v.visits)+'</td><td class="px-3 py-2 text-right">'+integer(v.conversions)+'</td><td class="px-3 py-2 text-right">'+percent(v.conversions/v.visits*100)+'</td></tr>').join('');
+}
+document.querySelectorAll('.period').forEach(button => button.addEventListener('click', () => { days = Number(button.dataset.days); updateCharts(); }));
+$('channelFilter').addEventListener('change', event => { channel = event.target.value; updateCharts(); });
+updateCharts();
+
+/* Video: nur eine validierte direkte Medienadresse, niemals HTML. */
+const video = $('videoPlayer');
+function videoError(message) {
+  $('videoError').textContent = message;
+  $('videoError').classList.remove('hidden');
+  $('videoStatus').textContent = 'Wiedergabe nicht verfügbar';
+}
+video.addEventListener('error', () => videoError('Das Video konnte nicht geladen werden. Prüfe die direkte URL, das Medienformat und die Netzwerkfreigabe. In einer Sandbox kann der Abruf gesperrt sein. Nutze gegebenenfalls „Quelle direkt öffnen“.'));
+video.querySelector('source').addEventListener('error', () => videoError('Die Beispielquelle ist gerade nicht erreichbar oder wird blockiert. Du kannst eine andere direkte Video-URL laden oder den Direktlink öffnen.'));
+video.addEventListener('loadedmetadata', () => {
+  $('videoError').classList.add('hidden');
+  $('videoStatus').textContent = 'Bereit · ' + (Number.isFinite(video.duration) ? Math.round(video.duration) + ' Sekunden' : 'externe Medienquelle');
+});
+video.addEventListener('play', () => {
+  if (active !== 2 || document.hidden) video.pause();
+  else $('videoStatus').textContent = 'Wiedergabe läuft';
+});
+video.addEventListener('pause', () => { if(!video.error) $('videoStatus').textContent = 'Pausiert · kein Autoplay'; });
+video.addEventListener('ended', () => $('videoStatus').textContent = 'Video beendet');
+$('videoForm').addEventListener('submit', event => {
+  event.preventDefault();
+  let url;
+  try {
+    url = new URL($('videoUrl').value.trim());
+    if (!['https:','http:'].includes(url.protocol) || !url.hostname || url.username || url.password) throw new Error('invalid');
+  } catch (error) {
+    videoError('Bitte eine vollständige HTTP- oder HTTPS-Adresse ohne Zugangsdaten eingeben, die direkt auf eine Videodatei verweist.');
+    return;
+  }
+  video.pause();
+  $('videoError').classList.add('hidden');
+  $('videoStatus').textContent = 'Quelle wird geladen …';
+  $('videoFallback').href = url.href;
+  video.removeAttribute('src');
+  video.querySelectorAll('source').forEach(source => source.remove());
+  video.src = url.href;
+  video.load();
+  $('videoTitle').textContent = url.hostname === 'interactive-examples.mdn.mozilla.net' ? 'Ein kleiner Perspektivwechsel.' : 'Deine eigene Perspektive.';
+});
+
+/* Zeitbasierter Teleprompter mit zwei identischen, gemessenen Textblöcken. */
+const demoText = `GUTE GESTALTUNG BEGINNT MIT EINER FRAGE.
+
+Nicht mit einer Farbe. Nicht mit einer Schrift. Sondern mit dem ehrlichen Versuch zu verstehen, was Menschen wirklich brauchen.
+
+Ein digitales Werkzeug darf komplexe Aufgaben lösen. Es sollte sich dabei nicht komplex anfühlen. Hinter jedem klaren Bildschirm liegen Entscheidungen: Was ist wichtig? Was kann warten? Und was lassen wir bewusst weg?
+
+Wir gestalten nicht für ideale Situationen. Wir gestalten für den Montagmorgen, für den kleinen Bildschirm im Zug und für den Moment, in dem jemand nur eine Hand frei hat. Klarheit ist keine Dekoration. Sie ist eine Form von Rücksicht.
+
+TECHNOLOGIE IST EIN MATERIAL.
+
+Wie Holz, Papier oder Licht hat auch Code Eigenschaften. Er kann leicht sein oder schwer. Beweglich oder starr. Sorgfältig eingesetzt wird er beinahe unsichtbar: Die Technik tritt zurück, die Aufgabe rückt nach vorn.
+
+Eine Animation ist dann gut, wenn sie Orientierung gibt. Sie zeigt, woher etwas kommt und wohin es geht. Dieser Würfel erzählt eine kleine räumliche Geschichte: Vier unterschiedliche Werkzeuge gehören zu einem gemeinsamen Arbeitsraum.
+
+Doch Bewegung ist kein Selbstzweck. Manche Menschen brauchen Ruhe. Andere bedienen die Oberfläche mit einer Tastatur. Eine gute Idee wird erst dann zu einer guten Anwendung, wenn auch diese Perspektiven ihren Platz bekommen.
+
+ZUSAMMENARBEIT BRAUCHT KONTUREN.
+
+Ein Projekt beginnt selten mit allen Antworten. Meistens beginnt es mit einer Vermutung, einer Skizze oder einem Gespräch. Wir machen diese Gedanken sichtbar, damit wir gemeinsam daran arbeiten können.
+
+Ein Briefing ist kein starres Versprechen. Es ist ein gemeinsamer Ausgangspunkt. Es hält fest, was wir wissen, und macht deutlich, was wir noch herausfinden möchten.
+
+Wir arbeiten in kleinen, überprüfbaren Schritten. Entwerfen. Ausprobieren. Zuhören. Verbessern. Nicht jede Schleife führt direkt nach vorn. Aber jede gute Schleife macht das Problem ein wenig verständlicher.
+
+DATEN BRAUCHEN EINEN KONTEXT.
+
+Ein Diagramm kann einen Zusammenhang zeigen. Es kann aber auch Sicherheit vortäuschen. Deshalb fragen wir: Woher stammen die Zahlen? Welcher Zeitraum ist gemeint? Und welche Geschichte erzählen sie gerade nicht?
+
+Diese Anwendung verwendet bewusst Beispieldaten. Sie sollen das Werkzeug erklären, nicht die Wirklichkeit behaupten. Transparenz beginnt dort, wo wir die Grenzen unserer Darstellung benennen.
+
+Auch ein kurzer Film kann eine neue Sichtweise eröffnen. Eine Blume im Wind erinnert daran, dass nicht jede Bewegung optimiert werden muss. Manchmal genügt es, genau hinzusehen.
+
+DAS WESENTLICHE BLEIBT BEWEGLICH.
+
+Wir wünschen uns Systeme, die mit ihren Aufgaben wachsen. Verständliche Strukturen, kleine Abhängigkeiten und klare Verantwortlichkeiten schaffen dafür den Raum.
+
+Gute Arbeit entsteht nicht durch permanente Beschleunigung. Sie braucht Konzentration und Pausen, Mut und Sorgfalt. Sie braucht Menschen, die ihre Fragen aussprechen, und Teams, die auch leisen Gedanken zuhören.
+
+Am Ende steht nicht nur eine fertige Oberfläche. Es steht ein Werkzeug, das seinen Platz im Alltag findet. Etwas, das hilft, statt sich in den Vordergrund zu drängen.
+
+Und wenn wir wieder am Anfang ankommen, sehen wir die erste Frage vielleicht mit anderen Augen.
+
+WAS BRAUCHEN MENSCHEN WIRKLICH?`;
+let wantsRunning = !reducedMotion.matches;
+let scrollOffset = 0, loopHeight = 1, lastTime = null, prompterFrame = 0;
+let speed = 32;
+function measureText() {
+  loopHeight = Math.max(1, $('prompterFirst').getBoundingClientRect().height);
+  scrollOffset %= loopHeight;
+}
+function applyText(text) {
+  $('prompterFirst').textContent = text;
+  $('prompterSecond').textContent = text;
+  scrollOffset = 0;
+  $('prompterTrack').style.setProperty('--scroll-y', '0px');
+  requestAnimationFrame(measureText);
+}
+$('customText').value = demoText;
+applyText(demoText);
+const textObserver = new ResizeObserver(measureText);
+textObserver.observe($('prompterFirst'));
+function shouldRun() { return wantsRunning && active === 3 && !document.hidden; }
+function tick(time) {
+  prompterFrame = 0;
+  if (!shouldRun()) { lastTime = null; return; }
+  if (lastTime !== null) scrollOffset = (scrollOffset + Math.min((time-lastTime)/1000, 0.1)*speed) % loopHeight;
+  lastTime = time;
+  $('prompterTrack').style.setProperty('--scroll-y', (-scrollOffset) + 'px');
+  prompterFrame = requestAnimationFrame(tick);
+}
+function syncPrompter() {
+  const running = shouldRun();
+  $('togglePrompter').textContent = wantsRunning ? 'Ⅱ Pause' : '▶ Start';
+  $('togglePrompter').setAttribute('aria-label', wantsRunning ? 'Lauftext pausieren' : 'Lauftext starten');
+  $('togglePrompter').setAttribute('aria-pressed', String(wantsRunning));
+  $('prompterState').textContent = running ? '● Läuft · ' + speed + ' px/s' : (wantsRunning ? 'Automatisch pausiert' : 'Ⅱ Pausiert');
+  if (running) {
+    if (!prompterFrame) { lastTime = null; prompterFrame = requestAnimationFrame(tick); }
+  } else {
+    cancelAnimationFrame(prompterFrame);
+    prompterFrame = 0;
+    lastTime = null;
+  }
+}
+$('togglePrompter').addEventListener('click', () => { wantsRunning = !wantsRunning; syncPrompter(); });
+$('restartPrompter').addEventListener('click', () => {
+  scrollOffset=0; lastTime=null;
+  $('prompterTrack').style.setProperty('--scroll-y','0px');
+  $('textStatus').textContent = 'Am Textanfang.';
+});
+$('speed').addEventListener('input', event => {
+  speed = Number(event.target.value);
+  $('speedOutput').textContent = speed + ' px/s';
+  syncPrompter();
+});
+$('fontSize').addEventListener('input', event => {
+  const size = Number(event.target.value);
+  $('fontOutput').textContent = size + ' px';
+  $('prompterTrack').style.setProperty('--prompter-size', size + 'px');
+  requestAnimationFrame(measureText);
+});
+$('textForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const text = $('customText').value.trim();
+  if (!text) {
+    $('textStatus').textContent = 'Bitte gib einen Text ein.';
+    return;
+  }
+  applyText(text);
+  $('textStatus').textContent = 'Übernommen · Neustart ab Textanfang.';
+});
+function updateMotionHint() {
+  $('motionHint').textContent = reducedMotion.matches
+    ? 'Reduzierte Bewegung erkannt: zunächst pausiert. Du kannst den Lauftext bewusst starten. Automatische Pause beim Seitenwechsel.'
+    : 'Pausiert automatisch auf anderen Seiten und in ausgeblendeten Tabs.';
+}
+reducedMotion.addEventListener('change', () => {
+  if (reducedMotion.matches) wantsRunning = false;
+  updateMotionHint(); syncPrompter();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) video.pause();
+  syncPrompter();
+  syncVisuals();
+});
+updateMotionHint();
+syncPrompter();
+
+/* Zwei rein generative Canvas-Studien, ohne Netzwerkressourcen. */
+const palettes = {
+  polar:['#5eead4','#a78bfa','#38bdf8'],
+  ember:['#fbbf24','#fb7185','#fdba74'],
+  ocean:['#60a5fa','#2dd4bf','#a5f3fc']
+};
+const stars = Array.from({length:400}, (_, i) => ({
+  x:((i * 0.61803398875) % 1),
+  y:((i * 0.41421356237 + 0.17) % 1),
+  z:0.2 + ((i * 0.73205080757) % 1) * 0.8,
+  phase:i * 2.39996
+}));
+const visualStates = [
+  {page:4, name:'cosmic', canvas:$('cosmicCanvas'), paused:reducedMotion.matches, time:0, speed:1, density:220, pointer:{x:0,y:0}, aim:{x:0,y:0}},
+  {page:5, name:'lab', canvas:$('labCanvas'), paused:reducedMotion.matches, time:0, intensity:0.65, palette:'polar', pointer:{x:0,y:0}, aim:{x:0,y:0}}
+];
+let visualFrame = 0, visualLastTime = null, visualSuspended = false;
+function sizeCanvas(state) {
+  const rect = state.canvas.getBoundingClientRect();
+  const width = Math.max(1, rect.width), height = Math.max(1, rect.height);
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  const pixelWidth = Math.round(width*dpr), pixelHeight = Math.round(height*dpr);
+  if (state.canvas.width !== pixelWidth || state.canvas.height !== pixelHeight) {
+    state.canvas.width = pixelWidth;
+    state.canvas.height = pixelHeight;
+  }
+  state.width = width; state.height = height;
+  state.ctx?.setTransform(dpr,0,0,dpr,0,0);
+}
+function glow(ctx, x, y, radius, color, alpha) {
+  ctx.globalAlpha = alpha;
+  const gradient = ctx.createRadialGradient(x,y,0,x,y,radius);
+  gradient.addColorStop(0,color);
+  gradient.addColorStop(1,color+'00');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+  ctx.globalAlpha = 1;
+}
+function drawCosmic(state) {
+  const ctx = state.ctx, w = state.width, h = state.height, t = state.time;
+  const px = state.pointer.x, py = state.pointer.y;
+  ctx.fillStyle = '#030817'; ctx.fillRect(0,0,w,h);
+  ctx.globalCompositeOperation = 'screen';
+  glow(ctx,w*(0.33+px*0.035),h*0.35,w*0.62,'#4338ca',0.35);
+  glow(ctx,w*0.74,h*0.68,w*0.48,'#0f766e',0.24);
+  for (let band=0; band<6; band++) {
+    ctx.beginPath();
+    for (let x=-30; x<=w+30; x+=12) {
+      const y = h*(0.42+band*0.035) + Math.sin(x/w*5+t*0.25+band*0.38)*h*0.17
+        + Math.sin(x/w*11-t*0.18)*h*0.045 + py*15;
+      if (x === -30) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = ['#5eead4','#2dd4bf','#38bdf8','#818cf8','#a78bfa','#c4b5fd'][band];
+    ctx.globalAlpha = 0.12;
+    ctx.lineWidth = 12 + band*3;
+    ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (let i=0; i<state.density; i++) {
+    const star = stars[i], radius = 0.45+star.z*1.45;
+    const x = ((star.x*w + px*star.z*28 + t*star.z*2) % w + w) % w;
+    const y = ((star.y*h + py*star.z*22) % h + h) % h;
+    const alpha = 0.45+Math.sin(t*0.8+star.phase)*0.22+star.z*0.25;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = i%5 ? '#e0f2fe' : '#c4b5fd';
+    ctx.beginPath(); ctx.arc(x,y,radius,0,Math.PI*2); ctx.fill();
+    if (i%29 === 0) {
+      ctx.strokeStyle = '#a5f3fc'; ctx.lineWidth = 0.6;
+      ctx.beginPath(); ctx.moveTo(x-5,y); ctx.lineTo(x+5,y);
+      ctx.moveTo(x,y-5); ctx.lineTo(x,y+5); ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+function drawLab(state) {
+  const ctx = state.ctx, w = state.width, h = state.height, t = state.time;
+  const colors = palettes[state.palette], intensity = state.intensity;
+  ctx.fillStyle = '#030817'; ctx.fillRect(0,0,w,h);
+  ctx.globalCompositeOperation = 'screen';
+  const pointerX = w*(0.5+state.pointer.x*0.4), pointerY = h*(0.5+state.pointer.y*0.35);
+  for (let row=0; row<24; row++) {
+    ctx.beginPath();
+    for (let col=0; col<=52; col++) {
+      const x = col/52*w, baseY = h*(0.18+row/24*0.75);
+      const distance = Math.hypot((x-pointerX)/w,(baseY-pointerY)/h);
+      const wave = Math.sin(col*0.24+row*0.24-t*1.1)*12
+        + Math.cos(distance*13-t*1.8)*Math.exp(-distance*2.5)*42;
+      const y = baseY+wave*intensity;
+      if (!col) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = colors[row%3];
+    ctx.globalAlpha = (0.16+row/24*0.38)*intensity;
+    ctx.lineWidth = row%4 === 0 ? 1.5 : 0.7;
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  for (let i=0; i<3; i++) {
+    const x = w*(0.25+i*0.25)+Math.sin(t*0.4+i*2)*w*0.06+state.pointer.x*24;
+    const y = h*(0.42+Math.cos(t*0.5+i*2)*0.16)+state.pointer.y*20;
+    glow(ctx,x,y,Math.min(w,h)*(0.3+intensity*0.16),colors[i],0.3*intensity);
+    glow(ctx,x,y,24+intensity*20,colors[i],0.75*intensity);
+    ctx.fillStyle = colors[i];
+    ctx.globalAlpha = 0.55+intensity*0.4;
+    ctx.beginPath(); ctx.arc(x,y,3+intensity*4,0,Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+function drawVisual(state) {
+  if (!state.ctx) return;
+  if (state.page === 4) drawCosmic(state); else drawLab(state);
+}
+function visualCanRun(state) {
+  return active === state.page && !state.paused && !document.hidden && !visualSuspended && Boolean(state.ctx);
+}
+function visualTick(time) {
+  visualFrame = 0;
+  const state = visualStates.find(visualCanRun);
+  if (!state) { visualLastTime = null; return; }
+  const dt = visualLastTime === null ? 0 : Math.min((time-visualLastTime)/1000,0.05);
+  visualLastTime = time;
+  state.time += dt*(state.speed || 1);
+  state.pointer.x += (state.aim.x-state.pointer.x)*Math.min(1,dt*5);
+  state.pointer.y += (state.aim.y-state.pointer.y)*Math.min(1,dt*5);
+  drawVisual(state);
+  visualFrame = requestAnimationFrame(visualTick);
+}
+function syncVisuals() {
+  cancelAnimationFrame(visualFrame);
+  visualFrame = 0; visualLastTime = null;
+  visualStates.forEach(state => {
+    const running = visualCanRun(state);
+    const button = $(state.name+'Pause');
+    button.textContent = state.paused ? 'Animation starten' : 'Animation pausieren';
+    button.setAttribute('aria-pressed', String(!state.paused));
+    button.disabled = !state.ctx;
+    $(state.name+'State').textContent = !state.ctx ? 'Canvas ist in diesem Browser nicht verfügbar.'
+      : running ? 'Animation läuft · visuelle Demo'
+      : state.paused ? 'Standbild · Animation pausiert' : 'Automatisch pausiert';
+    if (active === state.page) { sizeCanvas(state); drawVisual(state); }
+  });
+  if (visualStates.some(visualCanRun)) visualFrame = requestAnimationFrame(visualTick);
+}
+visualStates.forEach(state => {
+  state.ctx = state.canvas.getContext('2d', {alpha:false});
+  sizeCanvas(state);
+  $(state.name+'Pause').addEventListener('click', () => {
+    state.paused = !state.paused;
+    syncVisuals();
+  });
+  state.canvas.addEventListener('pointermove', event => {
+    if (state.paused || reducedMotion.matches || active !== state.page) return;
+    const rect = state.canvas.getBoundingClientRect();
+    state.aim.x = Math.max(-1,Math.min(1,(event.clientX-rect.left)/rect.width*2-1));
+    state.aim.y = Math.max(-1,Math.min(1,(event.clientY-rect.top)/rect.height*2-1));
+  }, {passive:true});
+  const resetPointer = () => { state.aim.x=0; state.aim.y=0; };
+  state.canvas.addEventListener('pointerleave', resetPointer);
+  state.canvas.addEventListener('pointercancel', resetPointer);
+  state.canvas.addEventListener('pointerup', event => { if (event.pointerType === 'touch') resetPointer(); });
+});
+const cosmic = visualStates[0], lab = visualStates[1];
+$('cosmicSpeed').addEventListener('input', event => {
+  cosmic.speed = Number(event.target.value);
+  $('cosmicSpeedOutput').textContent = cosmic.speed.toLocaleString('de-DE',{minimumFractionDigits:1})+'×';
+});
+$('cosmicDensity').addEventListener('input', event => {
+  cosmic.density = Number(event.target.value);
+  $('cosmicDensityOutput').textContent = cosmic.density+' Sterne';
+  if (active === cosmic.page) drawVisual(cosmic);
+});
+$('labPalette').addEventListener('change', event => {
+  lab.palette = event.target.value;
+  if (active === lab.page) drawVisual(lab);
+});
+$('labIntensity').addEventListener('input', event => {
+  lab.intensity = Number(event.target.value)/100;
+  $('labIntensityOutput').textContent = event.target.value+' %';
+  if (active === lab.page) drawVisual(lab);
+});
+const canvasObserver = new ResizeObserver(entries => {
+  entries.forEach(entry => {
+    const state = visualStates.find(item => item.canvas === entry.target);
+    sizeCanvas(state);
+    if (active === state.page) drawVisual(state);
+  });
+});
+visualStates.forEach(state => canvasObserver.observe(state.canvas));
+reducedMotion.addEventListener('change', () => {
+  if (reducedMotion.matches) visualStates.forEach(state => {
+    state.paused = true;
+    state.aim.x=0; state.aim.y=0; state.pointer.x=0; state.pointer.y=0;
+  });
+  syncVisuals();
+});
+syncVisuals();
+
+/* Vollständige, offline lesbare Dokumentation als echte Markdown-Datei. */
+const markdownDocumentation = `# CUBE / WORKSPACE – Sechs Seiten. Ein Raum.
+
+## Zweck und Komponenten
+Eine einzelne deutschsprachige HTML-Datei mit sechs echten CSS-3D-Würfelflächen, ohne Backend und ohne Build-Schritt. Tailwind kommt über https://cdn.tailwindcss.com; CSS ergänzt nur räumliche Geometrie, Canvas-Größen und Fokusdarstellung. JavaScript, SVG-Diagramme und Canvas-Zeichenfunktionen sind inline enthalten. Die Lichtdemos benötigen weder externe Bilder noch externe Bibliotheken.
+
+Die sichtbare Erklärung steht im Creative Lab unter „So funktioniert der sechsseitige Raum“. Dieser vollständige Markdown-Text wird direkt im Browser aus einem text/markdown-Blob heruntergeladen. Ein temporärer Link mit download-Attribut speichert cube-workspace-prinzip.md; seine ObjectURL wird nach 15 Sekunden freigegeben. Eingeschränkte Frames können Downloads verhindern.
+
+## Die sechs Seiten
+${pages.map((page, index) => (index+1)+'. **'+page.title+'** — ID: '+page.id+', DOM: '+page.face+', Symbol: '+page.icon).join('\n')}
+
+1. Eingabemaske: umfangreiches Projektbriefing, Kontakt, Zeitraum, Budget, Leistungen, Notizen, Vollständigkeitsanzeige und ausdrücklich bestätigte lokale Speicherung.
+2. Analytics: deterministische Demo-KPIs, interaktive SVG-Linie, Kanalbalken, Filter für 7/30/90 Tage und zugängliche Tageswerttabelle.
+3. Video: HTML5-Player, native Controls, manuelle Wiedergabe und Eingabe einer direkten HTTP(S)-Medienadresse.
+4. Lauftext: editierbarer deutscher Teleprompter mit Endlosschleife, Start/Pause, Neustart, Schriftgröße und Tempo.
+5. Oberseite: Cosmic Playground / Sternenatelier, generatives Partikel-Sternenfeld, sechs Aurorabänder, Maus-/Touch-Parallaxe, Tempo, 40–400 Sterne und Pause.
+6. Unterseite: Creative Lab / Kreativlabor, generatives Wellenraster mit drei Lichtkugeln, drei Farbpaletten, Intensität und Pause.
+
+Die neuen Seiten sind ausdrücklich visuelle Demos. Sie zeigen keine Live-Daten, Sensorwerte, KI-Auswertungen oder Messungen.
+
+## Architektur und zentrale Konfiguration
+
+DOM:
+\`\`\`text
+workspace (100dvh, Flex-Spalte)
+├── Header: Markdown und Vollbild
+├── notice: optionale Statusmeldung
+├── stage: perspektivischer, beschnittener Arbeitsbereich
+│   └── cube: zentrierter quadratischer 3D-Körper
+│       ├── face0 – vorne
+│       ├── face1 – rechts
+│       ├── face2 – hinten
+│       ├── face3 – links
+│       ├── face4 – oben
+│       └── face5 – unten
+└── Footer: links/rechts, sechs Direktwahlbuttons, oben/unten
+\`\`\`
+
+Das Array pages ist die zentrale Registrierung:
+- id: eindeutiger logischer Bezeichner
+- title und icon: deutscher Navigationstitel und Symbol
+- face und heading: existierende DOM-IDs
+- yaw und pitch: Zielorientierung
+- render(): bindet die vorhandene HTML-Fläche ein und liefert deren Element zurück
+- optional onEnter() und onLeave(): von goTo aufgerufene Lebenszyklus-Hooks
+
+Die sechs render-Funktionen erzeugen nicht bei jedem Wechsel neue Formulare. Sie geben die vorhandenen Flächen zurück; dadurch bleiben Eingaben, Scrollbereiche und native Medienzustände erhalten. faces wird einmal durch pages.map(page => page.render()) aufgebaut. Die Direktwahlbuttons entstehen ebenfalls einmal aus pages. titles und diese Seitenliste im Download sind daraus abgeleitet. Physische Geometrie und die Fachlogik bleiben bewusst explizit.
+
+Wichtige Zustandsvariablen:
+- active: aktueller pages-Index 0–5
+- sideIndex: zuletzt aktive Seitenfläche 0–3
+- orientation: kontinuierlicher Y-Winkel yaw und Zielneigung pitch
+- rotationTimer: ausstehender Fokuswechsel nach der Drehung
+- resizeFrame: zusammengefasste Größenaktualisierung
+- days und channel: aktuelle Analytics-Auswahl
+- wantsRunning, scrollOffset, loopHeight, lastTime, prompterFrame: Teleprompter
+- visualStates: beide Canvas-Zustände einschließlich Zeit, Pause, Zeigerposition und Reglern
+- visualFrame, visualLastTime und visualSuspended: gemeinsamer Canvas-Lebenszyklus
+
+## Echte Würfelgeometrie, CSS und Größenänderungen
+Der sichtbare Bereich kann rechteckig sein; der physische Würfel bleibt quadratisch. sizeStage misst stage.clientWidth und stage.clientHeight:
+
+\`\`\`js
+const side = Math.max(width, height);
+const depth = side / 2;
+\`\`\`
+
+--side bestimmt Breite und Höhe des Würfels; --depth ist für ALLE sechs Flächen gleich. Der Würfel wird innerhalb der Bühne zentriert. --view-width und --view-height begrenzen den direkten Inhaltscontainer jeder Fläche auf die sichtbare Bühnenabmessung. Der größere quadratische Hintergrund wird von der Bühne beschnitten. So füllt die aktive Fläche den Bildschirm auch im Hochformat, ohne falsche Z-Abstände oder übergroße Formularlayouts.
+
+Die Bühne hat perspective = max(side * 1.7, 850px) und perspective-origin: 50% 50%. cube verwendet transform-style: preserve-3d; die Flächen verbergen ihre Rückseiten mit backface-visibility: hidden.
+
+Tatsächliche Flächentransformationen:
+\`\`\`css
+/* d = --depth; vier Seiten */
+transform: rotateY(0deg)   translateZ(d);
+transform: rotateY(90deg)  translateZ(d);
+transform: rotateY(180deg) translateZ(d);
+transform: rotateY(270deg) translateZ(d);
+/* oben / unten */
+transform: rotateX(90deg)  translateZ(d);
+transform: rotateX(-90deg) translateZ(d);
+/* gemeinsamer Körper */
+transform: translateZ(-d) rotateX(pitch) rotateY(yaw);
+\`\`\`
+
+Im realen CSS stehen dafür die Variablen --face-angle, --face-transform, --depth, --pitch und --rotation. Transformationsreihenfolge ist wesentlich: Y-Rotation wirkt zuerst, danach X-Neigung, zuletzt die negative Z-Translation. In Ruhe wird die aktive Flächennormale auf die Kamera ausgerichtet und ihre Ebene liegt bei Z=0.
+
+Ein ResizeObserver beobachtet die Stage, nicht nur das Fenster. Nach Vollbildänderungen wird sizeStage ebenfalls aufgerufen. Weitere Observer messen Textblock und Canvas-Flächen. Header und Footer bleiben stehen; Inhalte scrollen innerhalb der jeweiligen Fläche. Die Direktwahl ist bei Platzmangel horizontal scrollbar. Desktop-Raster wechseln auf kleinen Geräten zu einer Spalte.
+
+## Tatsächliche Navigation und Orientierung
+Es werden keine inkrementellen lokalen 3D-Rotationen zusammengesetzt. Jede Fläche besitzt eine eindeutige Zielorientierung in pages:
+- Seiten: yaw 0, -90, -180, -270 Grad, pitch 0
+- oben: yaw äquivalent zu 0, pitch -90 Grad
+- unten: yaw äquivalent zu 0, pitch +90 Grad
+
+goTo(target, yawDirection) wählt für yaw das nächste äquivalente Ziel modulo 360:
+\`\`\`js
+let delta = ((page.yaw - orientation.yaw + 180) % 360 + 360) % 360 - 180;
+if (delta === -180 && yawDirection >= 0) delta = 180;
+orientation.yaw += delta;
+orientation.pitch = page.pitch;
+\`\`\`
+
+Dadurch kann die Seitennavigation über -360 Grad hinauslaufen, statt beim Übergang von Fläche 4 auf 1 rückwärts durch drei Seiten zu drehen. Bei direkter 180-Grad-Wahl entscheidet yawDirection über den Gleichstand; ohne Richtung wird +180 gewählt. CSS interpoliert rund 750 ms vom aktuellen Zustand zum neuen Ziel. Schnelle Eingaben ändern dasselbe Zielmodell, nicht eine unabhängige zweite Orientierung.
+
+navigate(delta) verändert sideIndex modulo vier. Links/rechts funktionieren auch auf den Polen: Sie öffnen die benachbarte Seitenfläche relativ zur gemerkten Seitenfläche. Direktwahl einer Seitenfläche aktualisiert sideIndex, Direktwahl eines Pols nicht.
+
+navigateVertical(direction) verwendet -1 für oben und +1 für unten:
+- Auf einer Seitenfläche öffnet ↑ die Oberseite und ↓ die Unterseite.
+- Auf der Oberseite führt ↓ zu sideIndex zurück; ↑ ist deaktiviert.
+- Auf der Unterseite führt ↑ zu sideIndex zurück; ↓ ist deaktiviert.
+- Die Direktwahl kann unmittelbar zwischen beiden Polen wechseln.
+
+Am Pol wird yaw auf das nächste volle Vielfache von 360 ausgerichtet. Deshalb bleiben die Inhalte oben und unten lesbar und erben keine zufällige Drehung der zuletzt besuchten Seitenfläche. Die Rückkehr stellt deren Y-Orientierung wieder her. Das ist eine bewusst festgelegte Navigation, kein freies „Rollen“ um lokale Achsen.
+
+## Tastatur, Fokus und reduzierte Bewegung
+Alle vier Pfeilbuttons sind sichtbar, haben deutsche aria-labels und Tooltips. Die sechs Direktwahlbuttons besitzen Namen aus pages, einen aktuellen aria-current-Zustand und sichtbaren Fokus. Inaktive Flächen erhalten inert und aria-hidden="true".
+
+Pfeiltasten werden nicht abgefangen bei:
+- Alt/Strg/Meta/Umschalt, bereits behandelten Ereignissen oder laufender Texteingabekomposition
+- Formularen, Eingaben, Textfeldern, Auswahlfeldern, Medien und Contenteditable
+- Slider-, Spinbutton-, Listen-, Combobox-, Menü- und Tablisten-Rollen
+- fokussierten Umsatzpunkten
+
+Für ↑/↓ werden außerdem Buttons, Links, Summary und andere mit tabindex fokussierbare Controls ausgenommen. Das erhält deren Tastatur- oder Scrollbedienung. Die sichtbaren Pfeilbuttons lassen sich mit Enter/Leertaste auslösen; außerhalb der genannten Controls funktionieren die Richtungstasten. Gehaltene Tasten lösen keinen Navigationssturm aus.
+
+Beim Verlassen einer fokussierten Fläche wird der Fokus VOR inert in den festen Weiterbutton verschoben. Nach dem Übergang erhält die neue Überschrift den Fokus, aber nur, wenn der Nutzer den Fokus inzwischen nicht selbst wegbewegt hat. Alte Timer werden bei jeder Navigation gelöscht. Ein Live-Status benennt die neue Fläche.
+
+prefers-reduced-motion reduziert den Würfelübergang auf 1 ms. Teleprompter und beide Lichtdemos starten dann pausiert. Eine während der Sitzung aktivierte Einstellung pausiert ebenfalls. Nutzer können Animationen danach ausdrücklich starten; Zeiger-Parallaxe bleibt bei reduzierter Bewegung abgeschaltet. Eine manuelle Pause friert Zeit und Zeigerbewegung ein. Regler dürfen weiterhin das Standbild verändern.
+
+## Canvas-Demos: Rendering und Leistung
+visualStates enthält zwei Zustände:
+- cosmic / page 4: time, speed, density, paused, pointer und aim
+- lab / page 5: time, intensity, palette, paused, pointer und aim
+
+Die Canvas-Kontexte werden mit alpha:false erzeugt. sizeCanvas misst die CSS-Größe und begrenzt die Pixeldichte auf 1,5. stars enthält 400 deterministisch verteilte Sterne; nur die gewünschte Anzahl wird gezeichnet. Keine Partikel-DOM-Knoten, keine Bilddownloads und keine Nachlade-API.
+
+drawCosmic zeichnet dunklen Hintergrund, radiale Nebel, sechs sinusförmige Aurorabänder und Sterne mit tiefenabhängiger Parallaxe. drawLab zeichnet 24 Wellenlinien mit jeweils 53 Stützpunkten und drei überlagerten Lichtkugeln. palettes definiert polar, ember und ocean. Regler ändern die tatsächlichen Zeichenparameter.
+
+Pointer Events unterstützen Maus und Touch. Normierte aim-Werte werden im laufenden Bild geglättet in pointer übernommen. Es werden keine Touch-Scrollgesten mit preventDefault blockiert. Verlassen, Abbrechen oder Loslassen eines Touchkontakts setzt das Ziel zur Mitte zurück.
+
+Nur eine gemeinsame requestAnimationFrame-Schleife läuft und nur für die aktive, nicht pausierte Canvas-Seite im sichtbaren Dokument. visualCanRun prüft außerdem visualSuspended und einen verfügbaren Canvas-Kontext. Bei fehlender Canvas-Unterstützung erscheint ein Status und der Startbutton ist deaktiviert.
+
+Die Zeitdifferenz ist auf 50 ms begrenzt. Nach Seitenwechseln, Tabwechseln und Wiederkehr wird kein Hintergrundzeitraum nachgeholt. Pausierte Seiten behalten ihr Bild. Regler und Größenänderungen können einmalig ein neues Standbild zeichnen, erzeugen aber keine Hintergrundschleife.
+
+## Lokale Speicherung und Datenschutz
+Das Formular startet mit ausdrücklich gekennzeichneten Demo-Werten. Pflichtfelder sind Projektname, gültige E-Mail und die lokale Speicherzustimmung. Budget darf nicht negativ sein, das Enddatum nicht vor dem Startdatum liegen. Die Vollständigkeitsanzeige zählt ausgefüllte Bereiche, nicht inhaltliche Qualität.
+
+Nur nach bestätigtem Submit wird gespeichert:
+- localStorage-Schlüssel: cube-workspace-briefing-v1
+- JSON: version, savedAt, data
+- Kein Backend, kein Versand durch das Formular, keine Synchronisierung
+- Automatisches Laden einer vorhandenen lokalen Kopie beim Start
+- Rücksetzen mit Bestätigung; versucht auch die gespeicherte Kopie zu entfernen
+
+Zugriffe sind mit try/catch abgesichert. Blockierter, beschädigter oder voller Speicher führt zu einer sichtbaren Meldung, nicht zum Verlust der Eingabemöglichkeit.
+
+localStorage ist nicht verschlüsselt, origin- und browsergebunden und für Skripte derselben Origin lesbar. Keine vertraulichen Daten auf gemeinsam verwendeten Geräten hinterlassen. Private Modi, file:-Adressen und Sandbox-Regeln können das Verhalten ändern. Canvas-Einstellungen und eigene Lauftexte werden nicht dauerhaft gespeichert. Tailwind-CDN und externe Videoanbieter erhalten unabhängig vom Formular technisch notwendige Verbindungsdaten.
+
+## Analytics und Video
+Analytics ist unverändert eine Demo ohne Verbindung zum Briefing: 180 deterministisch erzeugte Tage bis 30.06.2025, drei Kanäle und gleich lange Vorperioden. days und channel steuern KPIs, beide SVG-Charts und jeden Tabellenwert. Conversion = Abschlüsse / Besuche × 100. SVG-Punkte sind fokussierbar und besitzen Beschriftungen und Tooltips; die Tabelle ist die zugängliche Alternative.
+
+Das Video verwendet controls, playsinline und preload="metadata", kein Autoplay. Beispiel:
+https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+
+Die Beispiel-Lizenz CC0 gilt nur für diesen ursprünglichen Clip. Eigene Quellen werden mit new URL geprüft; nur HTTP/HTTPS ohne eingebettete Zugangsdaten sind zugelassen. Die Quelle wird als src gesetzt, nicht als HTML. YouTube-Webseiten sind keine direkten Mediendateien.
+
+Beim Verlassen der Videoseite, Verbergen des Dokuments und pagehide wird pausiert. Ein Play-Ereignis auf einer inaktiven Fläche pausiert ebenfalls sofort. Fehler erhalten eine deutsche Erklärung und einen Direktlink. Format-, Codec-, Hotlink-, Netzwerk-, Sandbox- und Mixed-Content-Sperren können auch gültige URLs unbrauchbar machen. Es werden keine Videos hochgeladen.
+
+## Teleprompter und Lebenszyklus
+Zwei identische Textblöcke, ausschließlich per textContent gesetzt; die zweite Kopie ist aria-hidden. Die gemessene Höhe des ersten Blocks einschließlich Abständen ist loopHeight:
+\`\`\`js
+scrollOffset = (scrollOffset + deltaSeconds * speed) % loopHeight;
+\`\`\`
+prompterTrack wird um den negativen Offset verschoben. Geschwindigkeit, Schriftgröße, Neustart und Textübernahme bleiben unabhängig bedienbar. ResizeObserver aktualisiert die Höhe bei Umbruch- und Schriftänderungen.
+
+syncPrompter und syncVisuals stoppen inaktive beziehungsweise pausierte RAF-Schleifen. visibilitychange synchronisiert beide und pausiert das Video. pagehide setzt visualSuspended, stoppt beide Schleifen und Video und löscht den Fokus-Timer; pageshow setzt die Sperre zurück, misst die Bühne neu und synchronisiert erneut. Die Observer bleiben für eine Rückkehr aus dem Back/Forward-Cache registriert.
+
+## Vollbild und Browsergrenzen
+Der Vollbildbutton verwendet requestFullscreen / exitFullscreen direkt aus einem Nutzerklick. fullscreenchange aktualisiert Beschriftung und Geometrie. Frames benötigen passende Freigaben wie allowfullscreen beziehungsweise allow="fullscreen" und eine entsprechende Permissions Policy.
+
+Fehler erscheinen als Hinweis. Ohne API bleibt die Anwendung im verfügbaren Container bildschirmfüllend. Ein eigener Browser-Tab und Browser-Vollbild, häufig F11, sind Alternativen.
+
+Aktuelle Chromium-, Firefox- und Safari-Versionen unterstützen CSS-3D, Canvas, SVG, ResizeObserver und RAF. Alte Browser benötigen unter Umständen einen inert-Polyfill. Externe Videos und Fullscreen-Unterstützung variieren. Extreme Zoomstufen und sehr kleine Einbettungen erfordern interne Scrollbereiche. Für vollständig offline nutzbare UI muss Tailwind lokal vorkompiliert werden; das Beispielvideo ist weiterhin extern.
+
+## Neue Seiten hinzufügen
+
+### 1. Vorhandenen Seiteninhalt austauschen
+Der einfachste Weg ist, einen der sechs Inhaltsslots zu verwenden. Die physische Fläche bleibt erhalten. Beispiel: Das Kreativlabor erhält einen neuen Hinweis oberhalb des bestehenden Canvas:
+\`\`\`js
+function renderLabMitHinweis() {
+  const face = $('face5');
+  const container = face.querySelector('.max-w-6xl');
+  if (!face.querySelector('#labHinweis')) {
+    const note = document.createElement('p');
+    note.id = 'labHinweis';
+    note.className = 'mb-4 text-sm text-teal-200';
+    note.textContent = 'Neue Lichtstudie – weiterhin ausschließlich eine visuelle Demo.';
+    container.prepend(note);
+  }
+  return face;
+}
+\`\`\`
+Im bestehenden pages-Eintrag für lab ersetzt man dann render:() => $('face5') durch render:renderLabMitHinweis. Die Funktion muss vor dem Aufbau von faces verfügbar sein. Sie liefert immer das äußere section-Element zurück.
+
+Für einen vollständigen Austausch: IDs face5 und title5, Klasse cube-face, den direkten viewportgroßen Inhaltscontainer und --face-transform:rotateX(-90deg) erhalten. Werden Canvas oder Controls entfernt, müssen deren visualStates-Eintrag, Eventbindungen und Observer ebenfalls entfernt oder angepasst werden. Nur HTML zu löschen, während $('labCanvas').getContext weiterhin ausgeführt wird, wäre ein Initialisierungsfehler.
+
+### 2. Eine neue logische Seite zentral registrieren
+Ein physischer Würfel besitzt genau SECHS Flächen. Nicht einfach pages.push mit face6 und einer vermeintlichen siebten Flächentransformation ausführen!
+
+Für einen neuen Namen/Inhalt auf einem bestehenden Slot ersetzt man dessen Konfiguration, ohne einen siebten Eintrag anzuhängen. Beispiel für den sechsten Eintrag:
+\`\`\`js
+{
+  id:'lichtstudio',
+  title:'Lichtstudio',
+  icon:'✧',
+  face:'face5',
+  heading:'title5',
+  yaw:0,
+  pitch:90,
+  render:renderLabMitHinweis,
+  onEnter:() => { $('labHinweis').hidden = false; },
+  onLeave:() => { $('labHinweis').hidden = true; }
+}
+\`\`\`
+Die eindeutige id darf in pages nur einmal vorkommen. Auch title5 im HTML entsprechend umbenennen. Dieser Eintrag ersetzt lab an Index 5; die vorhandene Lab-Zeichenlogik bleibt funktionstüchtig, weil face5, labCanvas und page:5 erhalten bleiben. Die Navigation und die aus pages abgeleitete Download-Seitenliste übernehmen Titel und Symbol beim nächsten Laden automatisch.
+
+Die vier Seitenplätze 0–3 und Pole 4/5 sind im aktuellen Navigationsmodell absichtlich fest. Eine Umordnung benötigt Anpassungen an sideIndex-Grenzen, navigateVertical, pitch-Zielen, video-/prompter-Indexprüfungen und visualStates.page. Für bloße Inhaltsänderungen ist keine Umordnung nötig.
+
+### 3. Eine siebte logische Seite als Unterseitenwechsel
+Für mehr Inhalte kann eine vorhandene physische Fläche mehrere Slots enthalten. Diese bleiben EINE Würfelfläche. Das folgende vollständig definierte Beispiel ergänzt face5 per render-Funktion um eine alternative Notizansicht:
+\`\`\`js
+function renderLabMitUnterseite() {
+  const face = $('face5');
+  const container = face.querySelector('.max-w-6xl');
+  const canvasPanel = $('labCanvas').parentElement;
+  if (!face.querySelector('#labUnterseite')) {
+    const button = document.createElement('button');
+    button.id = 'labUnterseite';
+    button.type = 'button';
+    button.className = 'mb-4 rounded-lg border border-teal-300/30 px-4 py-2 text-sm';
+    button.textContent = 'Notizansicht öffnen';
+    button.setAttribute('aria-expanded', 'false');
+    const note = document.createElement('div');
+    note.id = 'labNotizansicht';
+    note.hidden = true;
+    note.className = 'rounded-xl border border-white/10 p-6 text-slate-200';
+    note.textContent = 'Hier ist Platz für eine weitere logische Ansicht auf derselben Unterseite.';
+    button.setAttribute('aria-controls', note.id);
+    button.addEventListener('click', () => {
+      const showNote = note.hidden;
+      note.hidden = !showNote;
+      canvasPanel.hidden = showNote;
+      const state = visualStates.find(item => item.name === 'lab');
+      if (showNote) state.paused = true;
+      button.textContent = showNote ? 'Lichtansicht öffnen' : 'Notizansicht öffnen';
+      button.setAttribute('aria-expanded', String(showNote));
+      syncVisuals();
+    });
+    container.prepend(button, note);
+  }
+  return face;
+}
+\`\`\`
+Diese Funktion als render des sechsten pages-Eintrags registrieren. Der Eventhandler greift erst bei einem späteren Klick auf das dann initialisierte visualStates zu. Die Pause wird bewusst nicht automatisch aufgehoben; nach Rückkehr kann der Nutzer starten. Für eine produktive Unterseitenstruktur auch die Lichtregler zusammen mit dem Canvas ausblenden oder deren Bedienung passend deaktivieren.
+
+Soll eine siebte logische Seite in einer globalen Auswahl erscheinen, eine separate Slot-Konfiguration einführen, deren Aktion goTo(5) plus Slotwechsel ausführt. Nicht den heutigen pages-Index 6 als siebte physische Fläche behandeln: navigateVertical, vierseitige Seitennavigation und Flächentransformationen kennen weiterhin nur sechs Plätze. Alternativ braucht es ein wirklich erweitertes Modell, etwa mehrere Würfel, ein Karussell oder ein Polyeder, mit eigener Geometrie und Navigation.
+
+### 4. Navigation, State und Events sauber erweitern
+- Bei einem Ersatz innerhalb der sechs Einträge entstehen die Direktwahlbuttons automatisch aus pages; die vier Pfeilbuttons bleiben erhalten.
+- goTo ruft optionale onLeave/onEnter auf. Diese Hooks eignen sich zum Anhalten eigener Timer, Audioquellen oder Worker.
+- Die vorhandenen globalen Lifecycle-Handler kennen nur Video, Teleprompter und visualStates. Neue Animationen müssen zusätzlich visibilitychange, pagehide, pageshow und Reduced Motion berücksichtigen oder in visualStates integriert werden.
+- Eventhandler möglichst einmal beim Rendern binden; idempotente render-Funktionen wie oben vermeiden doppelte Controls.
+- Bei einer echten Demontage RAF und Timer abbrechen, Observer mit unobserve/disconnect lösen, Pointer-Capture gegebenenfalls freigeben und Listener mit AbortController oder removeEventListener entfernen.
+- Hooks werden bei einem Wechsel auf dieselbe Fläche nicht erneut aufgerufen. Slotwechsel deshalb ausdrücklich verwalten.
+- Nutzereingaben über textContent/DOM-Eigenschaften setzen, nicht ungeprüft in innerHTML.
+- Keine unsichtbare Ansicht fokussiert lassen: vor dem Ausblenden den Fokus auf einen sichtbaren Umschalter oder eine Überschrift verschieben.
+
+### Checkliste
+- [ ] Genau sechs physische Flächen, korrekte ±90-Grad-Top-/Bottom-Transformationen.
+- [ ] Eindeutige Seiten-, Überschriften-, Control- und Canvas-IDs.
+- [ ] pages-Titel, Symbol, Render-Funktion, heading und Zielwinkel konsistent.
+- [ ] Links/rechts über den Umlauf, beide Pole und Rückkehr von allen Seiten testen.
+- [ ] Direktwahl, schnelle Klickfolgen und deaktivierte Polpfeile testen.
+- [ ] Fokus bleibt sichtbar; inert und aria-hidden für alle inaktiven Flächen.
+- [ ] Pfeiltasten in Formularen, Slidern, Auswahlfeldern und Contenteditable bleiben lokal.
+- [ ] Hochformat, Querformat, Resize, Zoom und Vollbild prüfen.
+- [ ] Reduzierte Bewegung, manuelle Pause, Tabwechsel und Browser-Zurück testen.
+- [ ] Keine laufenden Hintergrundanimationen oder mehrfach gebundenen Events.
+- [ ] Formularspeicherung, Video-Fallback, Chartfilter und Lauftext unverändert prüfen.
+- [ ] Sichtbare Erklärung und diesen Markdown-Text bei fachlichen Änderungen mitpflegen.
+
+## Produktiver Betrieb
+Es gibt keine Zusagen zu serverseitiger Speicherung, Verschlüsselung oder Live-Daten. Für eine Veröffentlichung: Tailwind lokal bauen, Content Security Policy festlegen, Datenschutz und externe Medienquellen prüfen, Zielbrowser und assistive Technik testen. Die aktuelle Datei bleibt bewusst ein eigenständiger, transparenter Demo-Arbeitsraum.
+`;
+$('downloadMd').addEventListener('click', () => {
+  let url;
+  try {
+    const blob = new Blob([markdownDocumentation], {type:'text/markdown;charset=utf-8'});
+    url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'cube-workspace-prinzip.md';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  } catch (error) {
+    if(url) URL.revokeObjectURL(url);
+    showNotice('Der Markdown-Download konnte nicht gestartet werden. Öffne diese Seite außerhalb der eingebetteten Vorschau oder erlaube Downloads für diese Umgebung.');
+  }
+});
+window.addEventListener('pagehide', () => {
+  visualSuspended = true;
+  cancelAnimationFrame(visualFrame);
+  visualFrame = 0;
+  visualLastTime = null;
+  cancelAnimationFrame(prompterFrame);
+  cancelAnimationFrame(resizeFrame);
+  prompterFrame = 0;
+  lastTime = null;
+  clearTimeout(rotationTimer);
+  video.pause();
+});
+window.addEventListener('pageshow', () => {
+  visualSuspended = false;
+  sizeStage();
+  syncPrompter();
+  syncVisuals();
+});
+</script>
+</body>
+</html>
